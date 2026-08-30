@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="studio_black">#000000</color>
+    <color name="studio_night">#101012</color>
+    <color name="studio_blue">#0066CC</color>
+    <color name="studio_sky">#2997FF</color>
+    <color name="studio_parchment">#F5F5F7</color>
+    <color name="studio_pearl">#FAFAFC</color>
+    <color name="studio_white">#FFFFFF</color>
+    <color name="studio_ink">#1D1D1F</color>
+    <color name="studio_hairline">#E0E0E0</color>
+</resources>
