@@ -1,4 +1,4 @@
-# VideoCreator
+# Image/Video API Creator
 
 ## 中文
 
