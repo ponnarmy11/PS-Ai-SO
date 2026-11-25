@@ -23,7 +23,8 @@ enum class GenerationStatus {
 @Serializable
 enum class PlatformType {
     MINIMAX,
-    QWEN
+    QWEN,
+    AGNES
 }
 
 @Serializable
