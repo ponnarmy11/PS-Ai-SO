@@ -68,7 +68,7 @@ fun ParameterBottomSheet(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
-            Text("生成参数", style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+            Text("Generation Settings", style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(16.dp))
             when (current) {
                 is MiniMaxImageParams -> MiniMaxImagePanel(
@@ -96,13 +96,13 @@ fun ParameterBottomSheet(
                     params = defaultParams(params)
                     seedText = ""
                 }) {
-                    Text("恢复默认")
+                    Text("Restore Defaults")
                 }
                 Button(onClick = {
                     onConfirm(copyTextFields(params, seedText))
                     onDismiss()
                 }) {
-                    Text("确认")
+                    Text("Apply")
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
@@ -118,39 +118,39 @@ private fun MiniMaxImagePanel(
     onParamsChange: (MiniMaxImageParams) -> Unit
 ) {
     SimpleChips(
-        title = "模型",
+        title = "Model",
         options = listOf(ModelCatalog.MINIMAX_IMAGE_01, ModelCatalog.MINIMAX_IMAGE_01_LIVE),
         selected = params.model,
         onSelect = { onParamsChange(params.copy(model = it)) }
     )
     SimpleChips(
-        title = "宽高比",
+        title = "Aspect Ratio",
         options = listOf("1:1", "16:9", "4:3", "3:2", "2:3", "3:4", "9:16", "21:9"),
         selected = params.aspectRatio,
         onSelect = { onParamsChange(params.copy(aspectRatio = it, width = null, height = null)) }
     )
-    SliderText("生成数量：${params.n}", params.n.toFloat(), 1f, 9f, 7) {
+    SliderText("Number of images: ${params.n}", params.n.toFloat(), 1f, 9f, 7) {
         onParamsChange(params.copy(n = it.roundToInt().coerceIn(1, 9)))
     }
     OutlinedTextField(
         value = seedText,
         onValueChange = { onSeedChange(it.filter(Char::isDigit)) },
-        label = { Text("随机种子，留空为随机") },
+        label = { Text("Seed (leave blank for random)") },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = Modifier.fillMaxWidth()
     )
-    SwitchRow("Prompt 优化", params.promptOptimizer) {
+    SwitchRow("Prompt Optimization", params.promptOptimizer) {
         onParamsChange(params.copy(promptOptimizer = it))
     }
-    SwitchRow("AIGC 水印", params.aigcWatermark) {
+    SwitchRow("AIGC Watermark", params.aigcWatermark) {
         onParamsChange(params.copy(aigcWatermark = it))
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedTextField(
             value = params.width?.toString() ?: "",
             onValueChange = { value -> onParamsChange(params.copy(width = value.toIntOrNull())) },
-            label = { Text("宽度") },
+            label = { Text("Width") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f)
@@ -158,7 +158,7 @@ private fun MiniMaxImagePanel(
         OutlinedTextField(
             value = params.height?.toString() ?: "",
             onValueChange = { value -> onParamsChange(params.copy(height = value.toIntOrNull())) },
-            label = { Text("高度") },
+            label = { Text("Height") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f)
@@ -174,18 +174,18 @@ private fun QwenImagePanel(
     onParamsChange: (QwenImageParams) -> Unit
 ) {
     SimpleChips(
-        title = "尺寸",
+        title = "Size",
         options = listOf("1024*1024", "1280*720", "720*1280", "1536*2688", "2688*1536"),
         selected = params.size,
         onSelect = { onParamsChange(params.copy(size = it)) }
     )
-    SliderText("生成数量：${params.n}", params.n.toFloat(), 1f, 6f, 4) {
+    SliderText("Number of images: ${params.n}", params.n.toFloat(), 1f, 6f, 4) {
         onParamsChange(params.copy(n = it.roundToInt().coerceIn(1, 6)))
     }
     OutlinedTextField(
         value = seedText,
         onValueChange = { onSeedChange(it.filter(Char::isDigit)) },
-        label = { Text("随机种子") },
+        label = { Text("Seed") },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = Modifier.fillMaxWidth()
@@ -193,19 +193,19 @@ private fun QwenImagePanel(
     OutlinedTextField(
         value = params.negativePrompt,
         onValueChange = { onParamsChange(params.copy(negativePrompt = it)) },
-        label = { Text("反向提示词") },
+        label = { Text("Negative Prompt") },
         modifier = Modifier.fillMaxWidth()
     )
-    SimpleChips("改写模式", listOf("direct", "agent"), params.promptExtendMode) {
+    SimpleChips("Prompt Rewrite Mode", listOf("direct", "agent"), params.promptExtendMode) {
         onParamsChange(params.copy(promptExtendMode = it))
     }
-    SwitchRow("Prompt 智能改写", params.promptExtend) {
+    SwitchRow("Smart Prompt Rewrite", params.promptExtend) {
         onParamsChange(params.copy(promptExtend = it))
     }
-    SwitchRow("思考模式", params.enableThinking) {
+    SwitchRow("Thinking Mode", params.enableThinking) {
         onParamsChange(params.copy(enableThinking = it))
     }
-    SwitchRow("水印", params.watermark) {
+    SwitchRow("Watermark", params.watermark) {
         onParamsChange(params.copy(watermark = it))
     }
 }
@@ -215,16 +215,16 @@ private fun MiniMaxVideoPanel(
     params: MiniMaxVideoParams,
     onParamsChange: (MiniMaxVideoParams) -> Unit
 ) {
-    SimpleChips("分辨率", listOf("768P", "2K"), params.resolution) {
+    SimpleChips("Resolution", listOf("768P", "2K"), params.resolution) {
         onParamsChange(params.copy(resolution = it))
     }
-    SliderText("时长：${params.duration} 秒", params.duration.toFloat(), 4f, 15f, 10) {
+    SliderText("Duration: ${params.duration} sec", params.duration.toFloat(), 4f, 15f, 10) {
         onParamsChange(params.copy(duration = it.roundToInt().coerceIn(4, 15)))
     }
-    SimpleChips("宽高比", listOf("21:9", "16:9", "4:3", "1:1", "3:4", "9:16"), params.ratio) {
+    SimpleChips("Aspect Ratio", listOf("21:9", "16:9", "4:3", "1:1", "3:4", "9:16"), params.ratio) {
         onParamsChange(params.copy(ratio = it))
     }
-    SwitchRow("AIGC 水印", params.aigcWatermark) {
+    SwitchRow("AIGC Watermark", params.aigcWatermark) {
         onParamsChange(params.copy(aigcWatermark = it))
     }
 }
@@ -234,35 +234,35 @@ private fun QwenVideoPanel(
     params: QwenVideoParams,
     onParamsChange: (QwenVideoParams) -> Unit
 ) {
-    SimpleChips("分辨率", listOf("480P", "720P", "1080P"), params.resolution) {
+    SimpleChips("Resolution", listOf("480P", "720P", "1080P"), params.resolution) {
         onParamsChange(params.copy(resolution = it))
     }
-    SimpleChips("宽高比", listOf("adaptive", "16:9", "9:16", "1:1", "4:3", "3:4"), params.ratio) {
+    SimpleChips("Aspect Ratio", listOf("adaptive", "16:9", "9:16", "1:1", "4:3", "3:4"), params.ratio) {
         onParamsChange(params.copy(ratio = it))
     }
-    SliderText("时长：${params.duration} 秒", params.duration.toFloat(), 2f, 30f, 27) {
+    SliderText("Duration: ${params.duration} sec", params.duration.toFloat(), 2f, 30f, 27) {
         onParamsChange(params.copy(duration = it.roundToInt().coerceIn(2, 30)))
     }
     OutlinedTextField(
         value = params.audioUrl,
         onValueChange = { onParamsChange(params.copy(audioUrl = it)) },
-        label = { Text("音频 URL（可选）") },
+        label = { Text("Audio URL (optional)") },
         singleLine = true,
         modifier = Modifier.fillMaxWidth()
     )
     OutlinedTextField(
         value = params.negativePrompt,
         onValueChange = { onParamsChange(params.copy(negativePrompt = it)) },
-        label = { Text("反向提示词") },
+        label = { Text("Negative Prompt") },
         modifier = Modifier.fillMaxWidth()
     )
-    SwitchRow("输出音频", params.audio) {
+    SwitchRow("Generate Audio", params.audio) {
         onParamsChange(params.copy(audio = it))
     }
-    SwitchRow("Prompt 智能改写", params.promptExtend) {
+    SwitchRow("Smart Prompt Rewrite", params.promptExtend) {
         onParamsChange(params.copy(promptExtend = it))
     }
-    SwitchRow("水印", params.watermark) {
+    SwitchRow("Watermark", params.watermark) {
         onParamsChange(params.copy(watermark = it))
     }
 }
