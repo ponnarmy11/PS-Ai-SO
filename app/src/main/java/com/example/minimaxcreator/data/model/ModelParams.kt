@@ -56,7 +56,6 @@ data class MiniMaxVideoParams(
 }
 
 @Serializable
-@Serializable
 data class AgnesVideoParams(
     override val model: String = ModelCatalog.AGNES_VIDEO_FLASH,
     val duration: Int = 5,
