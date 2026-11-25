@@ -19,6 +19,7 @@ data class HomeUiState(
     val messages: List<ChatMessage> = emptyList(),
     val miniMaxApiKey: String = "",
     val qwenApiKey: String = "",
+    val agnesApiKey: String = "",
     val defaultImageModel: String = ModelCatalog.MINIMAX_IMAGE_01,
     val defaultVideoModel: String = ModelCatalog.MINIMAX_H3,
     val autoSave: Boolean = false,
