@@ -51,11 +51,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun saveKeys(miniMaxKey: String, qwenKey: String) {
+    fun saveKeys(miniMaxKey: String, qwenKey: String, agnesKey: String) {
         viewModelScope.launch {
             settingsRepository.setMiniMaxApiKey(miniMaxKey)
             settingsRepository.setQwenApiKey(qwenKey)
-            _events.emit("API Key saved")
+            settingsRepository.setAgnesApiKey(agnesKey)
+            _events.emit("API Keys saved")
         }
     }
 
