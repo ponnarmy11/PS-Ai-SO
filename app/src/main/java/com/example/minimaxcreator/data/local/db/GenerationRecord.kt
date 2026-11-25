@@ -23,7 +23,8 @@ enum class GenerationStatus {
 @Serializable
 enum class PlatformType {
     MINIMAX,
-    QWEN
+    QWEN,
+    AGNES
 }
 
 @Serializable
@@ -66,6 +67,7 @@ data class AppSettings(
     val apiKey: String = "",
     val miniMaxApiKey: String = "",
     val qwenApiKey: String = "",
+    val agnesApiKey: String = "",
     val defaultImageModel: String = "image-01",
     val defaultVideoModel: String = "MiniMax-H3",
     val modelParams: Map<String, String> = emptyMap(),
