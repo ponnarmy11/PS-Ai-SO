@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.minimaxcreator.data.model.AgnesVideoParams
 import com.example.minimaxcreator.data.model.MiniMaxImageParams
 import com.example.minimaxcreator.data.model.MiniMaxVideoParams
 import com.example.minimaxcreator.data.model.ModelCatalog
@@ -85,6 +86,7 @@ fun ParameterBottomSheet(
                 )
                 is MiniMaxVideoParams -> MiniMaxVideoPanel(current) { params = it }
                 is QwenVideoParams -> QwenVideoPanel(current) { params = it }
+                is AgnesVideoParams -> AgnesVideoPanel(current) { params = it }
             }
             Spacer(modifier = Modifier.height(20.dp))
             Row(
@@ -267,6 +269,26 @@ private fun QwenVideoPanel(
     }
 }
 
+
+@Composable
+private fun AgnesVideoPanel(params: AgnesVideoParams, onParamsChange: (AgnesVideoParams) -> Unit) {
+    SimpleChips("Duration", (4..12).map { it.toString() + " sec" }, params.seconds.toString() + " sec") {
+        onParamsChange(params.copy(seconds = it.substringBefore(" ").toInt()))
+    }
+    SimpleChips("Aspect Ratio", listOf("16:9", "9:16", "1:1", "4:3", "3:4", "21:9"), params.aspectRatio) {
+        onParamsChange(params.copy(aspectRatio = it))
+    }
+    OutlinedTextField(
+        value = params.seed?.toString() ?: "",
+        onValueChange = { onParamsChange(params.copy(seed = it.toIntOrNull())) },
+        label = { Text("Seed (optional)") },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.fillMaxWidth()
+    )
+    Text("Agnes Video 2.5 Flash · 720P", color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
 @Composable
 private fun SimpleChips(
     title: String,
@@ -333,6 +355,7 @@ private fun defaultParams(params: ModelParams): ModelParams {
         is QwenImageParams -> QwenImageParams(model = params.model)
         is MiniMaxVideoParams -> MiniMaxVideoParams(model = params.model)
         is QwenVideoParams -> QwenVideoParams(model = params.model)
+        is AgnesVideoParams -> AgnesVideoParams(model = params.model)
     }
 }
 
@@ -342,6 +365,7 @@ private fun copyTextFields(params: ModelParams, seedText: String): ModelParams {
         is QwenImageParams -> params.copy(seed = seedText.toIntOrNull())
         is QwenVideoParams -> params.copy(seed = seedText.toIntOrNull())
         is MiniMaxVideoParams -> params
+        is AgnesVideoParams -> params.copy(seed = seedText.toIntOrNull())
     }
 }
 
@@ -350,6 +374,7 @@ private fun seedTextFor(params: ModelParams): String {
         is MiniMaxImageParams -> params.seed?.toString() ?: ""
         is QwenImageParams -> params.seed?.toString() ?: ""
         is QwenVideoParams -> params.seed?.toString() ?: ""
+        is AgnesVideoParams -> params.seed?.toString() ?: ""
         is MiniMaxVideoParams -> ""
     }
 }
