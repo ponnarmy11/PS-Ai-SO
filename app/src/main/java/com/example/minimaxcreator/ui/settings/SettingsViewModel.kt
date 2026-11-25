@@ -47,7 +47,7 @@ class SettingsViewModel @Inject constructor(
     fun saveApiKey(value: String) {
         viewModelScope.launch {
             settingsRepository.setApiKey(value)
-            _events.emit("API Key 已保存")
+            _events.emit("API Key saved")
         }
     }
 
@@ -55,21 +55,21 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             settingsRepository.setMiniMaxApiKey(miniMaxKey)
             settingsRepository.setQwenApiKey(qwenKey)
-            _events.emit("API Key 已保存")
+            _events.emit("API Key saved")
         }
     }
 
     fun saveMiniMaxApiKey(value: String) {
         viewModelScope.launch {
             settingsRepository.setMiniMaxApiKey(value)
-            _events.emit("MiniMax API Key 已保存")
+            _events.emit("MiniMax API Key saved")
         }
     }
 
     fun saveQwenApiKey(value: String) {
         viewModelScope.launch {
             settingsRepository.setQwenApiKey(value)
-            _events.emit("Qwen API Key 已保存")
+            _events.emit("Qwen API Key saved")
         }
     }
 
@@ -84,7 +84,7 @@ class SettingsViewModel @Inject constructor(
     fun setAutoSave(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setAutoSave(enabled)
-            _events.emit(if (enabled) "已开启自动保存" else "已关闭自动保存")
+            _events.emit(if (enabled) "Auto-save enabled" else "Auto-save disabled")
         }
     }
 
@@ -97,7 +97,7 @@ class SettingsViewModel @Inject constructor(
     fun clearHistory() {
         viewModelScope.launch {
             generationRepository.clearRecords()
-            _events.emit("历史记录已清除")
+            _events.emit("History cleared")
         }
     }
 
@@ -106,7 +106,7 @@ class SettingsViewModel @Inject constructor(
             context.cacheDir.listFiles()?.forEach { file ->
                 if (file.isDirectory) file.deleteRecursively() else file.delete()
             }
-            _events.emit("缓存已清除")
+            _events.emit("Cache cleared")
         }
     }
 }
