@@ -68,6 +68,19 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun saveAgnesApiKey(value: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val result = runCatching { settingsRepository.setAgnesApiKey(value) }
+            result.onSuccess {
+                _events.emit("Agnes API Key saved")
+                onResult(true)
+            }.onFailure {
+                _events.emit("Agnes API Key save failed")
+                onResult(false)
+            }
+        }
+    }
+
     fun saveMiniMaxApiKey(value: String) {
         viewModelScope.launch {
             settingsRepository.setMiniMaxApiKey(value)
