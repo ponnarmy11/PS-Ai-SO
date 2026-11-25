@@ -2,8 +2,11 @@ package com.example.minimaxcreator.data.repository
 
 import com.example.minimaxcreator.data.local.db.GenerationRecordDao
 import com.example.minimaxcreator.data.local.db.GenerationRecordEntity
+import com.example.minimaxcreator.data.remote.api.AgnesApiService
 import com.example.minimaxcreator.data.remote.api.MiniMaxApiService
 import com.example.minimaxcreator.data.remote.api.QwenApiService
+import com.example.minimaxcreator.data.remote.dto.AgnesVideoCreateRequest
+import com.example.minimaxcreator.data.remote.dto.AgnesVideoStatusResponse
 import com.example.minimaxcreator.data.remote.dto.ImageGenerationRequest
 import com.example.minimaxcreator.data.remote.dto.ImageGenerationResponse
 import com.example.minimaxcreator.data.remote.dto.QwenImageGenerationRequest
@@ -20,9 +23,37 @@ import kotlinx.coroutines.delay
 @Singleton
 class GenerationRepository @Inject constructor(
     private val miniMaxApi: MiniMaxApiService,
+    private val agnesApi: AgnesApiService,
     private val qwenApi: QwenApiService,
     private val dao: GenerationRecordDao
 ) {
+    suspend fun createAgnesVideo(request: AgnesVideoCreateRequest) = agnesApi.createVideo(request)
+
+    suspend fun queryAgnesVideo(videoId: String, model: String): AgnesVideoStatusResponse =
+        agnesApi.queryVideo(videoId, model)
+
+    suspend fun pollAgnesVideo(
+        videoId: String,
+        model: String,
+        onProgress: suspend (status: String, message: String?) -> Unit
+    ): List<String> {
+        var interval = 4_000L
+        val timeout = System.currentTimeMillis() + 15 * 60 * 1000L
+        while (System.currentTimeMillis() < timeout) {
+            delay(interval)
+            val result = queryAgnesVideo(videoId, model)
+            when (result.status?.lowercase()) {
+                "completed", "success", "succeeded" -> return listOf(result.url ?: error("Agnes completed but returned no video URL"))
+                "failed", "error" -> error(result.message ?: result.error ?: "Agnes video generation failed")
+                else -> {
+                    onProgress(result.status ?: "processing", result.message)
+                    interval = (interval * 1.4).coerceAtMost(10_000.0).toLong()
+                }
+            }
+        }
+        error("Agnes video generation timed out. Please try again later.")
+    }
+
     suspend fun generateMiniMaxImage(request: ImageGenerationRequest): ImageGenerationResponse {
         val response = miniMaxApi.generateImage(request)
         val baseResp = response.baseResp
