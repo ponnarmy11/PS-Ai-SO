@@ -20,10 +20,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ApiKeyDialog(
-    onSave: (String, String) -> Unit
+    onSave: (String, String, String) -> Unit
 ) {
     var miniMaxValue by remember { mutableStateOf("") }
     var qwenValue by remember { mutableStateOf("") }
+    var agnesValue by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = {},
         title = { Text("Configure API Keys") },
@@ -46,12 +47,21 @@ fun ApiKeyDialog(
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation()
                 )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = agnesValue,
+                    onValueChange = { agnesValue = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Agnes AI API Key (optional)") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation()
+                )
             }
         },
         confirmButton = {
             Button(
-                onClick = { onSave(miniMaxValue, qwenValue) },
-                enabled = miniMaxValue.isNotBlank() || qwenValue.isNotBlank()
+                onClick = { onSave(miniMaxValue, qwenValue, agnesValue) },
+                enabled = miniMaxValue.isNotBlank() || qwenValue.isNotBlank() || agnesValue.isNotBlank()
             ) {
                 Text("Save")
             }
