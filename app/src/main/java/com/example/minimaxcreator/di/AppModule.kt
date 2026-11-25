@@ -3,7 +3,9 @@ package com.example.minimaxcreator.di
 import android.content.Context
 import com.example.minimaxcreator.data.local.db.AppDatabase
 import com.example.minimaxcreator.data.local.db.GenerationRecordDao
+import com.example.minimaxcreator.data.remote.AgnesAuthInterceptor
 import com.example.minimaxcreator.data.remote.ApiAuthInterceptor
+import com.example.minimaxcreator.data.remote.api.AgnesApiService
 import com.example.minimaxcreator.data.remote.api.MiniMaxApiService
 import com.example.minimaxcreator.data.repository.SettingsRepository
 import com.example.minimaxcreator.data.remote.QwenAuthInterceptor
@@ -31,6 +33,35 @@ object AppModule {
         ignoreUnknownKeys = true
         explicitNulls = false
         encodeDefaults = true
+    }
+
+    @Provides
+    @Singleton
+    @Named("agnes")
+    fun provideAgnesOkHttpClient(settingsRepository: SettingsRepository): OkHttpClient {
+        return OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .addInterceptor(AgnesAuthInterceptor(settingsRepository))
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @Named("agnesRetrofit")
+    fun provideAgnesRetrofit(json: Json, @Named("agnes") client: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://apihub.agnes-ai.com/")
+            .client(client)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAgnesApi(@Named("agnesRetrofit") retrofit: Retrofit): AgnesApiService {
+        return retrofit.create(AgnesApiService::class.java)
     }
 
     @Provides
