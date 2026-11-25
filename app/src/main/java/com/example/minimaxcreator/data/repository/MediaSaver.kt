@@ -41,10 +41,10 @@ class MediaSaver @Inject constructor(
                 put(MediaStore.MediaColumns.IS_PENDING, 1)
             }
             val uri = context.contentResolver.insert(contentUri, values)
-                ?: error("无法创建相册文件")
+                ?: error("Unable to create Gallery file")
             val output = context.contentResolver.openOutputStream(uri)
             try {
-                download(url, output ?: error("无法打开相册文件"))
+                download(url, output ?: error("Unable to open Gallery file"))
                 values.clear()
                 values.put(MediaStore.MediaColumns.IS_PENDING, 0)
                 context.contentResolver.update(uri, values, null, null)
@@ -83,7 +83,7 @@ class MediaSaver @Inject constructor(
                 putExtra(Intent.EXTRA_STREAM, fileUri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            context.startActivity(Intent.createChooser(intent, "分享作品").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            context.startActivity(Intent.createChooser(intent, "Share creation").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         }
     }
 
