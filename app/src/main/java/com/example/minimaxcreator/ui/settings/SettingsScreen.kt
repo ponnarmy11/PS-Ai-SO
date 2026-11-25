@@ -51,12 +51,14 @@ fun SettingsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var miniMaxKey by remember { mutableStateOf(state.settings.miniMaxApiKey) }
     var qwenKey by remember { mutableStateOf(state.settings.qwenApiKey) }
+    var agnesKey by remember { mutableStateOf(state.settings.agnesApiKey) }
     var showHistoryDialog by remember { mutableStateOf(false) }
     var showCacheDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.settings.miniMaxApiKey, state.settings.qwenApiKey) {
+    LaunchedEffect(state.settings.miniMaxApiKey, state.settings.qwenApiKey, state.settings.agnesApiKey) {
         miniMaxKey = state.settings.miniMaxApiKey
         qwenKey = state.settings.qwenApiKey
+        agnesKey = state.settings.agnesApiKey
     }
 
     Column(
@@ -89,10 +91,15 @@ fun SettingsScreen(
                 onValueChange = { qwenKey = it },
                 label = "Qwen (DashScope) API Key"
             )
+            KeyField(
+                value = agnesKey,
+                onValueChange = { agnesKey = it },
+                label = "Agnes AI API Key"
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Button(
-                onClick = { viewModel.saveKeys(miniMaxKey, qwenKey) },
-                enabled = miniMaxKey.isNotBlank() || qwenKey.isNotBlank(),
+                onClick = { viewModel.saveKeys(miniMaxKey, qwenKey, agnesKey) },
+                enabled = miniMaxKey.isNotBlank() || qwenKey.isNotBlank() || agnesKey.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Save API Keys")
