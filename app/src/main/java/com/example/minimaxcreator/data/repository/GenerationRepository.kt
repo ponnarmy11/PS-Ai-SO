@@ -27,7 +27,7 @@ class GenerationRepository @Inject constructor(
         val response = miniMaxApi.generateImage(request)
         val baseResp = response.baseResp
         if (baseResp != null && baseResp.statusCode != null && baseResp.statusCode != 0) {
-            error(baseResp.statusMessage ?: "图片生成失败")
+            error(baseResp.statusMessage ?: "Image generation failed")
         }
         return response
     }
@@ -66,19 +66,19 @@ class GenerationRepository @Inject constructor(
             val status = task.output?.taskStatus ?: continue
             when (status) {
                 "SUCCEEDED" -> {
-                    val url = task.output?.videoUrl ?: error("任务成功但未返回视频地址")
+                    val url = task.output?.videoUrl ?: error("Task succeeded but no video URL was returned")
                     return listOf(url)
                 }
-                "FAILED" -> error(task.output?.message ?: "Qwen 视频生成失败")
-                "CANCELED" -> error("Qwen 任务已取消")
-                "UNKNOWN" -> error("Qwen 任务不存在或已过期")
+                "FAILED" -> error(task.output?.message ?: "Qwen video generation failed")
+                "CANCELED" -> error("Qwen task was cancelled")
+                "UNKNOWN" -> error("Qwen task does not exist or has expired")
                 else -> {
                     onProgress(status, task.output?.message)
                     interval = (interval * 1.5).coerceAtMost(5_000.0).toLong()
                 }
             }
         }
-        error("Qwen 任务超时，请稍后重试")
+        error("Qwen task timed out. Please try again later.")
     }
 
     suspend fun pollMiniMaxVideo(
@@ -89,18 +89,18 @@ class GenerationRepository @Inject constructor(
         val timeout = System.currentTimeMillis() + 10 * 60 * 1000L
         while (System.currentTimeMillis() < timeout) {
             delay(interval)
-            val task = miniMaxApi.queryVideo(taskId).task ?: error("视频任务不存在")
+            val task = miniMaxApi.queryVideo(taskId).task ?: error("Video task does not exist")
             when (task.status) {
                 "succeeded" -> return listOfNotNull(task.content?.url)
-                "failed" -> error(task.error?.message ?: "视频生成失败")
-                "cancelled" -> error("视频任务已取消")
+                "failed" -> error(task.error?.message ?: "Video generation failed")
+                "cancelled" -> error("Video task was cancelled")
                 else -> {
                     onProgress(task.status ?: "running", task.error?.message)
                     interval = (interval * 1.5).coerceAtMost(5_000.0).toLong()
                 }
             }
         }
-        error("视频生成超时，请稍后重试")
+        error("Video generation timed out. Please try again later.")
     }
 
     suspend fun upsertRecord(record: GenerationRecordEntity) {
@@ -121,7 +121,7 @@ class GenerationRepository @Inject constructor(
 
     private fun checkResponseError(code: String?, message: String?) {
         if (!code.isNullOrBlank() || !message.isNullOrBlank()) {
-            error(message ?: code ?: "请求失败")
+            error(message ?: code ?: "Request failed")
         }
     }
 }
