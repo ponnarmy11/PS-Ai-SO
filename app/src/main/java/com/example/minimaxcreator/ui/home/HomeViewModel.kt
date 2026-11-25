@@ -252,9 +252,11 @@ class HomeViewModel @Inject constructor(
         }
         if (platformKey.isBlank()) {
             _events.emit(
-                if (params.platform == PlatformType.MINIMAX) "Please configure your MiniMax API Key first"
-                PlatformType.QWEN -> "Please configure your Qwen (DashScope) API Key first"
-                PlatformType.AGNES -> "Please configure your Agnes AI API Key in Settings"
+                when (params.platform) {
+                    PlatformType.MINIMAX -> "Please configure your MiniMax API Key first"
+                    PlatformType.QWEN -> "Please configure your Qwen (DashScope) API Key first"
+                    PlatformType.AGNES -> "Please configure your Agnes AI API Key in Settings"
+                }
             )
             return
         }
@@ -628,8 +630,8 @@ class HomeViewModel @Inject constructor(
             is HttpException -> when (error.code()) {
                 401, 2049 -> "Invalid API Key. Check Settings."
                 402, 1008 -> "Insufficient account balance. Check your account."
-                429, 1002 -> "Rate limit reached. Wait and try again."\n                503 -> "Agnes video queue may be busy. Please try again later."
-                500, 503 -> "Server is busy. Please try again later."
+                429, 1002 -> "Rate limit reached. Wait and try again."
+                500, 503 -> "Agnes video queue or provider server is busy. Please try again later."
                 else -> "Request failed (${error.code()})"
             }
             is UnknownHostException -> "Network connection failed. Check your internet connection."
