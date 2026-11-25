@@ -70,14 +70,14 @@ fun SettingsScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 0.dp, vertical = 8.dp)
         ) {
-            Text("设置", style = MaterialTheme.typography.headlineMedium)
+            Text("Settings", style = MaterialTheme.typography.headlineMedium)
         }
         Spacer(modifier = Modifier.height(20.dp))
         GlassCard(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = 16
         ) {
-            Text("API Key 管理", style = MaterialTheme.typography.titleMedium)
+            Text("API Key Management", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             KeyField(
                 value = miniMaxKey,
@@ -95,7 +95,7 @@ fun SettingsScreen(
                 enabled = miniMaxKey.isNotBlank() || qwenKey.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("保存平台 Key")
+                Text("Save API Keys")
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
@@ -105,29 +105,29 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = 16
         ) {
-            Text("模型配置", style = MaterialTheme.typography.titleMedium)
+            Text("Model Configuration", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             ModelDropdown(
-                label = "默认图片生成模型",
+                label = "Default Image Model",
                 options = ModelCatalog.IMAGE_MODELS,
                 selected = state.settings.defaultImageModel,
                 onSelect = viewModel::setDefaultImageModel
             )
             Spacer(modifier = Modifier.height(8.dp))
             ModelDropdown(
-                label = "默认视频生成模型",
+                label = "Default Video Model",
                 options = ModelCatalog.VIDEO_MODELS,
                 selected = state.settings.defaultVideoModel,
                 onSelect = viewModel::setDefaultVideoModel
             )
             Spacer(modifier = Modifier.height(16.dp))
             SettingSwitchRow(
-                title = "生成后自动保存到相册",
+                title = "Automatically save generated media to Gallery",
                 checked = state.settings.autoSave,
                 onCheckedChange = viewModel::setAutoSave
             )
             SettingSwitchRow(
-                title = "使用系统动态颜色",
+                title = "Use system dynamic colors",
                 checked = state.settings.dynamicColors,
                 onCheckedChange = viewModel::setDynamicColors
             )
@@ -139,20 +139,20 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = 16
         ) {
-            Text("数据管理", style = MaterialTheme.typography.titleMedium)
+            Text("Data Management", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = { showHistoryDialog = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("清除历史记录")
+                Text("Clear History")
             }
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = { showCacheDialog = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("清除缓存")
+                Text("Clear Cache")
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
@@ -162,10 +162,10 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = 16
         ) {
-            Text("关于", style = MaterialTheme.typography.titleMedium)
+            Text("About", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text("Studio 2.2.2")
-            Text("仅将用户输入发送至 MiniMax 与 Qwen API，不收集其他数据。")
+            Text("Only user input is sent to MiniMax and Qwen APIs. No other data is collected.")
         }
         Spacer(modifier = Modifier.height(32.dp))
     }
@@ -173,32 +173,32 @@ fun SettingsScreen(
     if (showHistoryDialog) {
         AlertDialog(
             onDismissRequest = { showHistoryDialog = false },
-            title = { Text("确认清除历史记录？") },
-            text = { Text("此操作不可撤销。") },
+            title = { Text("确认Clear History？") },
+            text = { Text("This action cannot be undone.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.clearHistory()
                     showHistoryDialog = false
-                }) { Text("清除") }
+                }) { Text("Clear") }
             },
             dismissButton = {
-                TextButton(onClick = { showHistoryDialog = false }) { Text("取消") }
+                TextButton(onClick = { showHistoryDialog = false }) { Text("Cancel") }
             }
         )
     }
     if (showCacheDialog) {
         AlertDialog(
             onDismissRequest = { showCacheDialog = false },
-            title = { Text("确认清除缓存？") },
-            text = { Text("会删除临时下载文件，不影响历史记录。") },
+            title = { Text("确认Clear Cache？") },
+            text = { Text("Temporary downloaded files will be deleted. History will not be affected.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.clearCache()
                     showCacheDialog = false
-                }) { Text("清除") }
+                }) { Text("Clear") }
             },
             dismissButton = {
-                TextButton(onClick = { showCacheDialog = false }) { Text("取消") }
+                TextButton(onClick = { showCacheDialog = false }) { Text("Cancel") }
             }
         )
     }
@@ -229,7 +229,7 @@ private fun KeyField(
             IconButton(onClick = { visible = !visible }) {
                 Icon(
                     imageVector = if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                    contentDescription = if (visible) "隐藏" else "显示"
+                    contentDescription = if (visible) "Hide" else "Show"
                 )
             }
         }
