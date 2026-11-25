@@ -3,6 +3,8 @@ package com.example.minimaxcreator.data.repository
 import com.example.minimaxcreator.data.local.db.GenerationRecordDao
 import com.example.minimaxcreator.data.local.db.GenerationRecordEntity
 import com.example.minimaxcreator.data.remote.api.MiniMaxApiService
+import com.example.minimaxcreator.data.remote.api.AgnesApiService
+import com.example.minimaxcreator.data.remote.api.AgnesVideoCreateRequest
 import com.example.minimaxcreator.data.remote.api.QwenApiService
 import com.example.minimaxcreator.data.remote.dto.ImageGenerationRequest
 import com.example.minimaxcreator.data.remote.dto.ImageGenerationResponse
@@ -21,6 +23,7 @@ import kotlinx.coroutines.delay
 class GenerationRepository @Inject constructor(
     private val miniMaxApi: MiniMaxApiService,
     private val qwenApi: QwenApiService,
+    private val agnesApi: AgnesApiService,
     private val dao: GenerationRecordDao
 ) {
     suspend fun generateMiniMaxImage(request: ImageGenerationRequest): ImageGenerationResponse {
@@ -34,6 +37,38 @@ class GenerationRepository @Inject constructor(
 
     suspend fun createMiniMaxVideo(request: VideoGenerationV2Request): VideoGenerationV2Response {
         return miniMaxApi.createVideo(request)
+    }
+
+
+    suspend fun createAgnesVideoTask(apiKey: String, request: AgnesVideoCreateRequest): String {
+        val response = agnesApi.createVideo("Bearer $apiKey", request)
+        return (response.video_id ?: response.id ?: response.task_id)
+            ?.takeIf { it.isNotBlank() }
+            ?: error(response.error?.message ?: response.message ?: "Agnes did not return a video task ID")
+    }
+
+    suspend fun pollAgnesVideo(
+        apiKey: String,
+        videoId: String,
+        onProgress: suspend (status: String, message: String?) -> Unit
+    ): List<String> {
+        var interval = 3_000L
+        val timeout = System.currentTimeMillis() + 20 * 60 * 1000L
+        while (System.currentTimeMillis() < timeout) {
+            delay(interval)
+            val task = agnesApi.queryVideo("Bearer $apiKey", videoId, "agnes-video-2.5-flash")
+            when (task.status?.lowercase()) {
+                "completed", "succeeded", "success" ->
+                    return listOfNotNull(task.url ?: task.video_url)
+                        .ifEmpty { error("Agnes task completed but no video URL was returned") }
+                "failed", "error" -> error(task.error?.message ?: task.message ?: "Agnes video generation failed")
+                else -> {
+                    onProgress(task.status ?: "processing", task.message)
+                    interval = (interval * 1.25).coerceAtMost(8_000.0).toLong()
+                }
+            }
+        }
+        error("Agnes video generation timed out. Check History before retrying.")
     }
 
     suspend fun generateQwenImage(request: QwenImageGenerationRequest): QwenImageGenerationResponse {
