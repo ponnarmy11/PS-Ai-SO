@@ -26,14 +26,14 @@ fun ApiKeyDialog(
     var qwenValue by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = {},
-        title = { Text("配置平台 API Key") },
+        title = { Text("Configure API Keys") },
         text = {
             Column {
                 OutlinedTextField(
                     value = miniMaxValue,
                     onValueChange = { miniMaxValue = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("MiniMax API Key（可选）") },
+                    placeholder = { Text("MiniMax API Key (optional)") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation()
                 )
@@ -42,7 +42,7 @@ fun ApiKeyDialog(
                     value = qwenValue,
                     onValueChange = { qwenValue = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Qwen (DashScope) API Key（可选）") },
+                    placeholder = { Text("Qwen (DashScope) API Key (optional)") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation()
                 )
@@ -53,12 +53,12 @@ fun ApiKeyDialog(
                 onClick = { onSave(miniMaxValue, qwenValue) },
                 enabled = miniMaxValue.isNotBlank() || qwenValue.isNotBlank()
             ) {
-                Text("保存")
+                Text("Save")
             }
         },
         dismissButton = {
             TextButton(onClick = {}, enabled = false) {
-                Text("至少配置一个平台 API Key")
+                Text("Configure at least one API Key")
             }
         }
     )
