@@ -547,6 +547,10 @@ class HomeViewModel @Inject constructor(
                 if (attachments.size > 1) error("Qwen image-to-video supports only 1 first-frame image")
                 require(params.duration in 2..30) { "Qwen video duration must be between 2 and 30 seconds" }
             }
+            is AgnesVideoParams -> {
+                if (attachments.size > 1) error("Agnes Video Flash supports only one first-frame image")
+                require(params.duration in 4..12) { "Agnes video duration must be between 4 and 12 seconds" }
+            }
         }
     }
 
@@ -594,6 +598,7 @@ class HomeViewModel @Inject constructor(
             is QwenImageParams -> 10L * 1024L * 1024L
             is MiniMaxVideoParams -> 30L * 1024L * 1024L
             is MiniMaxImageParams -> 10L * 1024L * 1024L
+            is AgnesVideoParams -> 20L * 1024L * 1024L
         }
     }
 
