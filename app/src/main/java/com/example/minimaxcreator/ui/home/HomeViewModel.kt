@@ -224,15 +224,15 @@ class HomeViewModel @Inject constructor(
     fun saveRemote(url: String, isVideo: Boolean) {
         viewModelScope.launch {
             runCatching { mediaSaver.saveRemote(url, isVideo) }
-                .onSuccess { _events.emit("已保存到相册") }
-                .onFailure { _events.emit("保存失败：${it.message ?: "未知错误"}") }
+                .onSuccess { _events.emit("Saved to Gallery") }
+                .onFailure { _events.emit("Save failed: ${it.message ?: "Unknown error"}") }
         }
     }
 
     fun shareRemote(url: String, isVideo: Boolean) {
         viewModelScope.launch {
             runCatching { mediaSaver.shareRemote(url, isVideo) }
-                .onFailure { _events.emit("分享失败：${it.message ?: "未知错误"}") }
+                .onFailure { _events.emit("Share failed: ${it.message ?: "Unknown error"}") }
         }
     }
 
@@ -247,13 +247,13 @@ class HomeViewModel @Inject constructor(
         }
         if (platformKey.isBlank()) {
             _events.emit(
-                if (params.platform == PlatformType.MINIMAX) "请先配置 MiniMax 平台的 API Key"
-                else "请先配置 Qwen (DashScope) 平台的 API Key"
+                if (params.platform == PlatformType.MINIMAX) "Please configure your MiniMax API Key first"
+                else "Please configure your Qwen (DashScope) API Key first"
             )
             return
         }
         if (prompt.isBlank()) {
-            _events.emit("请输入创作描述")
+            _events.emit("Enter a prompt to create")
             return
         }
         try {
@@ -318,7 +318,7 @@ class HomeViewModel @Inject constructor(
             )
             updateMessage(failed)
             repository.upsertRecord(failed.toRecord().toEntity())
-            _events.emit(failed.errorMessage ?: "生成失败")
+            _events.emit(failed.errorMessage ?: "Generation failed")
         } finally {
             _uiState.update { it.copy(isGenerating = false) }
         }
@@ -345,7 +345,7 @@ class HomeViewModel @Inject constructor(
         )
         val response = repository.generateMiniMaxImage(request)
         val urls = response.data?.imageUrls.orEmpty()
-        if (urls.isEmpty()) error(response.baseResp?.statusMessage ?: "图片生成未返回结果")
+        if (urls.isEmpty()) error(response.baseResp?.statusMessage ?: "Image generation returned no result")
         completeWithUrls(message, urls, false)
     }
 
@@ -376,7 +376,7 @@ class HomeViewModel @Inject constructor(
         val urls = response.output?.choices.orEmpty()
             .flatMap { it.message?.content.orEmpty() }
             .mapNotNull { it.image }
-        if (urls.isEmpty()) error(response.message ?: "Qwen 图片生成未返回结果")
+        if (urls.isEmpty()) error(response.message ?: "Qwen Image generation returned no result")
         completeWithUrls(message, urls, false)
     }
 
@@ -403,8 +403,8 @@ class HomeViewModel @Inject constructor(
             aigcWatermark = params.aigcWatermark
         )
         val response = repository.createMiniMaxVideo(request)
-        val taskId = response.taskId ?: error("视频任务创建失败")
-        val queued = message.copy(taskId = taskId, progressText = "排队中…")
+        val taskId = response.taskId ?: error("Failed to create video task")
+        val queued = message.copy(taskId = taskId, progressText = "Queued…")
         updateMessage(queued)
         repository.upsertRecord(queued.toRecord().toEntity())
         val urls = repository.pollMiniMaxVideo(taskId) { status, taskMessage ->
@@ -441,8 +441,8 @@ class HomeViewModel @Inject constructor(
             )
         )
         val response = repository.createQwenVideoTask(request)
-        val taskId = response.output?.taskId ?: error("Qwen 视频任务创建失败")
-        val queued = message.copy(taskId = taskId, progressText = "排队中…")
+        val taskId = response.output?.taskId ?: error("Qwen Failed to create video task")
+        val queued = message.copy(taskId = taskId, progressText = "Queued…")
         updateMessage(queued)
         repository.upsertRecord(queued.toRecord().toEntity())
         val urls = repository.pollQwenTask(taskId) { status, taskMessage ->
@@ -460,9 +460,9 @@ class HomeViewModel @Inject constructor(
         val updated = message.copy(
             taskId = taskId,
             progressText = when (status.lowercase()) {
-                "queued", "pending" -> "排队中…"
-                "running" -> "任务处理中…"
-                else -> "处理中…"
+                "queued", "pending" -> "Queued…"
+                "running" -> "Processing…"
+                else -> "Processing…"
             },
             errorMessage = taskMessage
         )
@@ -484,7 +484,7 @@ class HomeViewModel @Inject constructor(
         )
         updateMessage(completed)
         repository.upsertRecord(completed.toRecord().toEntity())
-        _events.emit("生成完成")
+        _events.emit("Generation completed")
     }
 
     private fun updateMessage(updated: ChatMessage) {
@@ -498,33 +498,33 @@ class HomeViewModel @Inject constructor(
     private fun validateParams(params: ModelParams, attachments: List<Uri>) {
         when (params) {
             is MiniMaxImageParams -> {
-                if (attachments.size > 1) error("MiniMax 图生图最多支持 1 张参考图")
+                if (attachments.size > 1) error("MiniMax image-to-image supports up to 1 reference image")
                 validateMiniMaxImageParams(params)
             }
             is QwenImageParams -> {
-                if (attachments.size > 3) error("Qwen 图生图最多支持 3 张参考图")
-                if (params.n !in 1..6) error("Qwen 图片数量需在 1 到 6 之间")
+                if (attachments.size > 3) error("Qwen image-to-image supports up to 3 reference images")
+                if (params.n !in 1..6) error("Qwen image count must be between 1 and 6")
             }
             is MiniMaxVideoParams -> {
-                if (attachments.size > 1) error("MiniMax 图生视频最多支持 1 张首帧图")
-                require(params.duration in 4..15) { "MiniMax 视频时长需在 4 到 15 秒之间" }
+                if (attachments.size > 1) error("MiniMax image-to-video supports only 1 first-frame image")
+                require(params.duration in 4..15) { "MiniMax video duration must be between 4 and 15 seconds" }
             }
             is QwenVideoParams -> {
-                if (attachments.size > 1) error("Qwen 图生视频最多支持 1 张首帧图")
-                require(params.duration in 2..30) { "Qwen 视频时长需在 2 到 30 秒之间" }
+                if (attachments.size > 1) error("Qwen image-to-video supports only 1 first-frame image")
+                require(params.duration in 2..30) { "Qwen video duration must be between 2 and 30 seconds" }
             }
         }
     }
 
     private fun validateMiniMaxImageParams(params: MiniMaxImageParams) {
-        if (params.n !in 1..9) error("图片数量需在 1 到 9 之间")
+        if (params.n !in 1..9) error("Image count must be between 1 and 9")
         val width = params.width
         val height = params.height
         if (width != null || height != null) {
-            require(width != null && height != null) { "自定义宽高需同时填写" }
-            require(width in 512..2048 && height in 512..2048) { "自定义宽高范围是 512 到 2048" }
-            require(width % 8 == 0 && height % 8 == 0) { "自定义宽高必须是 8 的倍数" }
-            require(params.model == "image-01") { "自定义尺寸仅 image-01 可用" }
+            require(width != null && height != null) { "Enter both custom width and height" }
+            require(width in 512..2048 && height in 512..2048) { "Custom width and height must be between 512 and 2048" }
+            require(width % 8 == 0 && height % 8 == 0) { "Custom width and height must be multiples of 8" }
+            require(params.model == "image-01") { "Custom dimensions are only available for image-01" }
         }
     }
 
@@ -587,15 +587,15 @@ class HomeViewModel @Inject constructor(
     private fun friendlyError(error: Throwable): String {
         return when (error) {
             is HttpException -> when (error.code()) {
-                401, 2049 -> "API Key 无效，请检查设置"
-                402, 1008 -> "账户余额不足，请检查账户"
-                429, 1002 -> "请求过于频繁，请稍后再试"
-                500, 503 -> "服务器繁忙，请稍后重试"
-                else -> "请求失败（${error.code()}）"
+                401, 2049 -> "Invalid API Key. Check Settings."
+                402, 1008 -> "Insufficient account balance. Check your account."
+                429, 1002 -> "Too many requests. Please try again later."
+                500, 503 -> "Server is busy. Please try again later."
+                else -> "Request failed (${error.code()})"
             }
-            is UnknownHostException -> "网络连接失败，请检查网络"
-            is SocketTimeoutException -> "网络连接超时，请稍后重试"
-            else -> error.message ?: "生成失败"
+            is UnknownHostException -> "Network connection failed. Check your internet connection."
+            is SocketTimeoutException -> "Network connection timed out. Please try again later."
+            else -> error.message ?: "Generation failed"
         }
     }
 }
