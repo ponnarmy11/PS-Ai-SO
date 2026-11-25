@@ -143,7 +143,7 @@ private fun AppBottomBar(navController: NavHostController) {
             selected = currentDestination == "home",
             onClick = { navController.navigateToHome() },
             icon = { Icon(Icons.Outlined.Home, contentDescription = null) },
-            label = { Text("创作") },
+            label = { Text("Create") },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF0A84FF),
                 selectedTextColor = Color(0xFF1D1D1F),
@@ -156,7 +156,7 @@ private fun AppBottomBar(navController: NavHostController) {
             selected = currentDestination == "history",
             onClick = { navController.navigate("history") { launchSingleTop = true } },
             icon = { Icon(Icons.Outlined.History, contentDescription = null) },
-            label = { Text("历史") },
+            label = { Text("History") },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF0A84FF),
                 selectedTextColor = Color(0xFF1D1D1F),
@@ -169,7 +169,7 @@ private fun AppBottomBar(navController: NavHostController) {
             selected = currentDestination == "settings",
             onClick = { navController.navigate("settings") { launchSingleTop = true } },
             icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
-            label = { Text("设置") },
+            label = { Text("Settings") },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF0A84FF),
                 selectedTextColor = Color(0xFF1D1D1F),
