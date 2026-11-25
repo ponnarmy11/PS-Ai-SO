@@ -78,9 +78,9 @@ private fun ThinkingCard() {
     )
     var textIndex by remember { mutableIntStateOf(0) }
     val thinkingTexts = listOf(
-        "正在理解画面要求",
-        "正在整理视觉细节",
-        "正在准备生成方案"
+        "Understanding your prompt",
+        "Preparing visual details",
+        "Preparing generation"
     )
 
     LaunchedEffect(Unit) {
@@ -106,7 +106,7 @@ private fun ThinkingCard() {
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(
-                    text = "正在思考",
+                    text = "Thinking",
                     color = Color(0xFF1D1D1F),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp
@@ -248,7 +248,7 @@ private fun VideoGeneratingAnimation(progressText: String?) {
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = progressText ?: "AI 正在创作视频…",
+                text = progressText ?: "AI is generating your video…",
                 color = Color.White,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp
