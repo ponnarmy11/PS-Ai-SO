@@ -62,7 +62,7 @@ object AppModule {
     @Named("miniMaxRetrofit")
     fun provideMiniMaxRetrofit(json: Json, @Named("miniMax") client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://api.minimaxi.com/")
+            .baseUrl("https://api.minimax.io/")
             .client(client)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
