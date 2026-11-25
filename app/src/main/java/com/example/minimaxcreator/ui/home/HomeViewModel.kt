@@ -12,12 +12,14 @@ import com.example.minimaxcreator.data.local.db.PlatformType
 import com.example.minimaxcreator.data.local.db.SubMode
 import com.example.minimaxcreator.data.local.db.TopMode
 import com.example.minimaxcreator.data.local.db.toEntity
+import com.example.minimaxcreator.data.model.AgnesVideoParams
 import com.example.minimaxcreator.data.model.MiniMaxImageParams
 import com.example.minimaxcreator.data.model.MiniMaxVideoParams
 import com.example.minimaxcreator.data.model.ModelCatalog
 import com.example.minimaxcreator.data.model.ModelParams
 import com.example.minimaxcreator.data.model.QwenImageParams
 import com.example.minimaxcreator.data.model.QwenVideoParams
+import com.example.minimaxcreator.data.remote.dto.AgnesVideoCreateRequest
 import com.example.minimaxcreator.data.remote.dto.ImageGenerationRequest
 import com.example.minimaxcreator.data.remote.dto.ImageSubjectReference
 import com.example.minimaxcreator.data.remote.dto.QwenImageContent
@@ -88,6 +90,7 @@ class HomeViewModel @Inject constructor(
                     current.copy(
                         miniMaxApiKey = settings.miniMaxApiKey,
                         qwenApiKey = settings.qwenApiKey,
+                        agnesApiKey = settings.agnesApiKey,
                         defaultImageModel = settings.defaultImageModel,
                         defaultVideoModel = settings.defaultVideoModel,
                         modelParams = settings.modelParams,
@@ -143,6 +146,7 @@ class HomeViewModel @Inject constructor(
                 is QwenVideoParams -> 1
                 is MiniMaxImageParams -> 1
                 is MiniMaxVideoParams -> 1
+                is AgnesVideoParams -> 1
             }
             if (it.attachments.size >= max) it
             else it.copy(
@@ -244,11 +248,13 @@ class HomeViewModel @Inject constructor(
         val platformKey = when (params.platform) {
             PlatformType.MINIMAX -> state.miniMaxApiKey
             PlatformType.QWEN -> state.qwenApiKey
+            PlatformType.AGNES -> state.agnesApiKey
         }
         if (platformKey.isBlank()) {
             _events.emit(
                 if (params.platform == PlatformType.MINIMAX) "Please configure your MiniMax API Key first"
-                else "Please configure your Qwen (DashScope) API Key first"
+                PlatformType.QWEN -> "Please configure your Qwen (DashScope) API Key first"
+                PlatformType.AGNES -> "Please configure your Agnes AI API Key in Settings"
             )
             return
         }
@@ -309,6 +315,7 @@ class HomeViewModel @Inject constructor(
                 is QwenImageParams -> generateQwenImage(aiMessage, params, dataUris)
                 is MiniMaxVideoParams -> generateMiniMaxVideo(aiMessage, params, dataUris)
                 is QwenVideoParams -> generateQwenVideo(aiMessage, params, dataUris)
+                is AgnesVideoParams -> generateAgnesVideo(aiMessage, params, dataUris)
             }
         } catch (t: Throwable) {
             val failed = aiMessage.copy(
@@ -451,6 +458,33 @@ class HomeViewModel @Inject constructor(
         completeWithUrls(message.copy(taskId = taskId), urls, true)
     }
 
+    private suspend fun generateAgnesVideo(
+        message: ChatMessage,
+        params: AgnesVideoParams,
+        dataUris: List<String>
+    ) {
+        val isImageVideo = message.type == GenerationType.IMAGE_TO_VIDEO
+        val request = AgnesVideoCreateRequest(
+            model = params.model,
+            prompt = message.prompt.take(12000),
+            mode = if (isImageVideo && dataUris.isNotEmpty()) "keyframe" else "text",
+            seconds = params.duration.toString(),
+            size = "720P",
+            aspect_ratio = params.ratio,
+            first_frame = dataUris.firstOrNull()
+        )
+        val response = repository.createAgnesVideo(request)
+        val videoId = response.video_id ?: response.id
+            ?: response.task_id ?: error(response.message ?: "Agnes failed to create video task")
+        val queued = message.copy(taskId = videoId, progressText = "Agnes queue…")
+        updateMessage(queued)
+        repository.upsertRecord(queued.toRecord().toEntity())
+        val urls = repository.pollAgnesVideo(videoId, params.model) { status, taskMessage ->
+            updateVideoProgress(message, videoId, status, taskMessage)
+        }
+        completeWithUrls(message.copy(taskId = videoId), urls, true)
+    }
+
     private suspend fun updateVideoProgress(
         message: ChatMessage,
         taskId: String,
@@ -589,7 +623,7 @@ class HomeViewModel @Inject constructor(
             is HttpException -> when (error.code()) {
                 401, 2049 -> "Invalid API Key. Check Settings."
                 402, 1008 -> "Insufficient account balance. Check your account."
-                429, 1002 -> "Too many requests. Please try again later."
+                429, 1002 -> "Rate limit reached. Wait and try again."\n                503 -> "Agnes video queue may be busy. Please try again later."
                 500, 503 -> "Server is busy. Please try again later."
                 else -> "Request failed (${error.code()})"
             }
