@@ -148,7 +148,7 @@ fun HomeScreen(
             pendingCameraUri = uri
             cameraLauncher.launch(uri)
         } else {
-            Toast.makeText(context, "无法使用相机", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Unable to use camera", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -190,7 +190,7 @@ fun HomeScreen(
                         )
                     }
                     IconButton(onClick = { showParameters = true }) {
-                        Icon(Icons.Outlined.Settings, contentDescription = "生成参数")
+                        Icon(Icons.Outlined.Settings, contentDescription = "Generation settings")
                     }
                 }
             }
@@ -295,7 +295,7 @@ fun HomeScreen(
     if (showAttachmentPicker) {
         ModalBottomSheet(onDismissRequest = { showAttachmentPicker = false }) {
             Column(modifier = Modifier.padding(20.dp)) {
-                Text("添加参考图片", style = MaterialTheme.typography.titleLarge)
+                Text("Add reference images", style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -314,7 +314,7 @@ fun HomeScreen(
                     ) {
                         Icon(Icons.Outlined.PhotoLibrary, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("相册")
+                        Text("Gallery")
                     }
                     Button(
                         modifier = Modifier.weight(1f),
@@ -325,7 +325,7 @@ fun HomeScreen(
                     ) {
                         Icon(Icons.Outlined.CameraAlt, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("拍照")
+                        Text("Take photo")
                     }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
@@ -348,8 +348,8 @@ private fun ModeSelector(
     onModeChange: (TopMode) -> Unit
 ) {
     val modes = listOf(
-        TopMode.IMAGE to "图片生成",
-        TopMode.VIDEO to "视频生成"
+        TopMode.IMAGE to "Image generation",
+        TopMode.VIDEO to "Video generation"
     )
     GlassCard(
         modifier = Modifier
@@ -401,7 +401,7 @@ private fun ModeIndicatorRow(
                     )
                 ) {
                     Text(selectedModel, fontSize = 12.sp)
-                    Icon(Icons.Outlined.ArrowDropDown, contentDescription = "选择模型")
+                    Icon(Icons.Outlined.ArrowDropDown, contentDescription = "Select model")
                 }
                 DropdownMenu(
                     expanded = expanded,
@@ -466,7 +466,7 @@ private fun EmptyState(mode: TopMode) {
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = if (animatedMode == TopMode.VIDEO) "开始一段奇妙的视频创作" else "描述你想要的画面",
+                    text = if (animatedMode == TopMode.VIDEO) "Create an amazing video" else "Describe the image you want",
                     color = Color(0xFFDCE6F3)
                 )
             }
@@ -490,7 +490,7 @@ private fun AttachmentPreview(
             Box {
                 AsyncImage(
                     model = uri,
-                    contentDescription = "已选择的参考图",
+                    contentDescription = "Selected reference image",
                     modifier = Modifier
                         .size(72.dp)
                         .clip(RoundedCornerShape(18.dp)),
@@ -506,7 +506,7 @@ private fun AttachmentPreview(
                 ) {
                     Icon(
                         Icons.Outlined.Close,
-                        contentDescription = "移除图片",
+                        contentDescription = "Remove image",
                         tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
@@ -543,20 +543,20 @@ private fun InputBar(
                     onClick = onAttach,
                     modifier = Modifier.alpha(if (attachEnabled) 1f else 0.38f)
                 ) {
-                    Icon(Icons.Outlined.PhotoLibrary, contentDescription = "添加图片")
+                    Icon(Icons.Outlined.PhotoLibrary, contentDescription = "Add image")
                 }
             }
             OutlinedTextField(
                 value = prompt,
                 onValueChange = onPromptChange,
-                placeholder = { Text(if (mode.requiresAttachment()) "上传图片并描述变化…" else "描述你想要的画面…") },
+                placeholder = { Text(if (mode.requiresAttachment()) "Upload an image and describe the changes…" else "Describe the image you want…") },
                 modifier = Modifier.weight(1f),
                 minLines = 1,
                 maxLines = 5,
                 shape = RoundedCornerShape(18.dp)
             )
             IconButton(onClick = onOpenParameters) {
-                Icon(Icons.Outlined.Settings, contentDescription = "参数设置")
+                Icon(Icons.Outlined.Settings, contentDescription = "Settings")
             }
             FilledIconButton(
                 onClick = onSend,
@@ -571,7 +571,7 @@ private fun InputBar(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Icon(Icons.Outlined.Send, contentDescription = "发送")
+                    Icon(Icons.Outlined.Send, contentDescription = "Send")
                 }
             }
         }
@@ -598,7 +598,7 @@ private fun FullscreenImageDialog(
                 items(urls) { url ->
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current).data(url).build(),
-                        contentDescription = "预览",
+                        contentDescription = "Preview",
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(8.dp),
@@ -613,7 +613,7 @@ private fun FullscreenImageDialog(
                     .padding(12.dp)
                     .background(Color.Black.copy(alpha = 0.5f), CircleShape)
             ) {
-                Icon(Icons.Outlined.Close, contentDescription = "关闭", tint = Color.White)
+                Icon(Icons.Outlined.Close, contentDescription = "Close", tint = Color.White)
             }
         }
     }
@@ -621,11 +621,11 @@ private fun FullscreenImageDialog(
 
 private fun modeTitle(mode: GenerationType): String {
     return when (mode) {
-        GenerationType.TEXT_TO_IMAGE -> "文生图"
-        GenerationType.IMAGE_TO_IMAGE -> "图生图"
-        GenerationType.TEXT_TO_VIDEO -> "文生视频"
-        GenerationType.IMAGE_TO_VIDEO -> "图生视频"
-        GenerationType.VIDEO_EDIT -> "视频编辑"
+        GenerationType.TEXT_TO_IMAGE -> "Text to Image"
+        GenerationType.IMAGE_TO_IMAGE -> "Image to Image"
+        GenerationType.TEXT_TO_VIDEO -> "Text to Video"
+        GenerationType.IMAGE_TO_VIDEO -> "Image to Video"
+        GenerationType.VIDEO_EDIT -> "Video Editing"
     }
 }
 
@@ -635,8 +635,8 @@ private fun GenerationType.topMode(): TopMode {
 
 private fun timeGreeting(): String {
     return when (LocalTime.now().hour) {
-        in 5..10 -> "早上好"
-        in 11..17 -> "中午好"
-        else -> "晚上好"
+        in 5..10 -> "Good morning"
+        in 11..17 -> "Good afternoon"
+        else -> "Good evening"
     }
 }
