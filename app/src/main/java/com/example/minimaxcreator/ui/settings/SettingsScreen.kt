@@ -52,6 +52,7 @@ fun SettingsScreen(
     var miniMaxKey by remember { mutableStateOf(state.settings.miniMaxApiKey) }
     var qwenKey by remember { mutableStateOf(state.settings.qwenApiKey) }
     var agnesKey by remember { mutableStateOf(state.settings.agnesApiKey) }
+    var agnesSaveStatus by remember { mutableStateOf<String?>(null) }
     var showHistoryDialog by remember { mutableStateOf(false) }
     var showCacheDialog by remember { mutableStateOf(false) }
 
@@ -93,9 +94,24 @@ fun SettingsScreen(
             )
             KeyField(
                 value = agnesKey,
-                onValueChange = { agnesKey = it },
+                onValueChange = { agnesKey = it; agnesSaveStatus = null },
                 label = "Agnes AI API Key"
             )
+            Button(
+                onClick = {
+                    agnesSaveStatus = "Saving Agnes API key..."
+                    viewModel.saveAgnesApiKey(agnesKey) { saved ->
+                        agnesSaveStatus = if (saved) "Agnes API key saved securely." else "Could not save Agnes API key. Please try again."
+                    }
+                },
+                enabled = agnesKey.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Save Agnes API Key")
+            }
+            agnesSaveStatus?.let { status ->
+                Text(status, style = MaterialTheme.typography.bodySmall)
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = { viewModel.saveKeys(miniMaxKey, qwenKey, agnesKey) },
