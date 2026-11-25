@@ -69,7 +69,7 @@ class HistoryViewModel @Inject constructor(
     fun deleteRecord(record: GenerationRecord) {
         viewModelScope.launch {
             repository.deleteRecord(record.id)
-            _events.emit("已删除")
+            _events.emit("Deleted")
         }
     }
 
@@ -79,7 +79,7 @@ class HistoryViewModel @Inject constructor(
         viewModelScope.launch {
             repository.deleteRecords(selected.toList())
             _uiState.update { it.copy(selectionMode = false, selectedIds = emptySet()) }
-            _events.emit("已删除 ${selected.size} 条记录")
+            _events.emit("Deleted ${selected.size} 条记录")
         }
     }
 
@@ -87,7 +87,7 @@ class HistoryViewModel @Inject constructor(
         val url = resultUrls(record).firstOrNull() ?: return
         viewModelScope.launch {
             runCatching { mediaSaver.shareRemote(url, record.type.name.endsWith("VIDEO")) }
-                .onFailure { _events.emit("分享失败：${it.message ?: "未知错误"}") }
+                .onFailure { _events.emit("Share failed: ${it.message ?: "Unknown error"}") }
         }
     }
 
