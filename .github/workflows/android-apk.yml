@@ -6,18 +6,18 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
-    name: Build debug APK
+    name: Build and publish debug APK
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -33,10 +33,32 @@ jobs:
       - name: Build debug APK
         run: ./gradlew --no-daemon assembleDebug
 
-      - name: Upload APK
+      - name: Verify APK
+        shell: bash
+        run: |
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          ls -lh "$APK"
+          sha256sum "$APK"
+
+      - name: Upload Actions artifact
         uses: actions/upload-artifact@v4
         with:
           name: PS-AI-STUDIO-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish APK as GitHub Release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          RUN_NUMBER: ${{ github.run_number }}
+          APK_PATH: app/build/outputs/apk/debug/app-debug.apk
+        shell: bash
+        run: |
+          TAG="apk-build-${RUN_NUMBER}"
+          gh release create "$TAG" "$APK_PATH#PS-AI-STUDIO-debug.apk" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "PS AI STUDIO APK - Build ${RUN_NUMBER}" \
+            --notes "Automatically built Android debug APK from commit ${GITHUB_SHA}."
