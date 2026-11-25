@@ -4,7 +4,7 @@
     <string name="home">Create</string>
     <string name="history">History</string>
     <string name="settings">Settings</string>
-    <string name="generating">正在Create中…</string>
+    <string name="generating">Generating…</string>
     <string name="queued">Queued…</string>
     <string name="running">Processing…</string>
     <string name="failed">Generation failed</string>
@@ -12,9 +12,9 @@
     <string name="download">Download</string>
     <string name="share">Share</string>
     <string name="delete">Delete</string>
-    <string name="clear_history">清除History记录</string>
+    <string name="clear_history">Clear history</string>
     <string name="clear_cache">Clear cache</string>
     <string name="api_key_hint">Enter MiniMax API Key</string>
     <string name="about">About</string>
-    <string name="empty_history">还没有Create记录，去Create吧！</string>
+    <string name="empty_history">No history yet. Start creating!</string>
 </resources>
