@@ -15,8 +15,8 @@ class ImageDataReader @Inject constructor(
 ) {
     suspend fun read(uri: Uri, maxBytes: Long = MAX_BYTES): String = withContext(Dispatchers.IO) {
         val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-            ?: error("无法读取所选图片")
-        require(bytes.size <= maxBytes) { "图片超过 ${maxBytes / 1024 / 1024}MB 限制" }
+            ?: error("Unable to read the selected image")
+        require(bytes.size <= maxBytes) { "Image exceeds the ${maxBytes / 1024 / 1024} MB limit" }
         val mime = context.contentResolver.getType(uri) ?: "image/jpeg"
         "data:$mime;base64,${Base64.encodeToString(bytes, Base64.NO_WRAP)}"
     }
