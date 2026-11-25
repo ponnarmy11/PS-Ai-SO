@@ -97,19 +97,19 @@ fun HistoryScreen(
             ) {
                 if (state.selectionMode) {
                     TextButton(onClick = viewModel::exitSelectionMode) {
-                        Text("取消")
+                        Text("Cancel")
                     }
-                    Text("已选择 ${state.selectedIds.size} 条")
+                    Text("${state.selectedIds.size} selected")
                     IconButton(
                         onClick = viewModel::deleteSelected,
                         enabled = state.selectedIds.isNotEmpty()
                     ) {
-                        Icon(Icons.Outlined.Delete, contentDescription = "批量删除")
+                        Icon(Icons.Outlined.Delete, contentDescription = "Delete selected")
                     }
                 } else {
-                    Text("历史记录", style = MaterialTheme.typography.headlineMedium)
+                    Text("History", style = MaterialTheme.typography.headlineMedium)
                     TextButton(onClick = viewModel::enterSelectionMode) {
-                        Text("选择")
+                        Text("Select")
                     }
                 }
             }
@@ -120,7 +120,7 @@ fun HistoryScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            placeholder = { Text("搜索提示词") },
+            placeholder = { Text("Search prompts") },
             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
             singleLine = true,
             shape = RoundedCornerShape(24.dp)
@@ -132,7 +132,7 @@ fun HistoryScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "还没有创作记录，去创作吧！",
+                    text = "No creations yet. Start creating!",
                     color = Color(0xFF6E6E73)
                 )
             }
@@ -183,16 +183,16 @@ fun HistoryScreen(
     if (deleteDialog) {
         AlertDialog(
             onDismissRequest = { deleteDialog = false },
-            title = { Text("清除历史记录") },
-            text = { Text("确认删除所有记录？") },
+            title = { Text("清除History") },
+            text = { Text("Delete all history records?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteSelected()
                     deleteDialog = false
-                }) { Text("删除") }
+                }) { Text("Delete") }
             },
             dismissButton = {
-                TextButton(onClick = { deleteDialog = false }) { Text("取消") }
+                TextButton(onClick = { deleteDialog = false }) { Text("Cancel") }
             }
         )
     }
@@ -246,7 +246,7 @@ private fun HistoryRecordCard(
                     model = urls.firstOrNull()?.let {
                         ImageRequest.Builder(LocalContext.current).data(it).build()
                     },
-                    contentDescription = "缩略图",
+                    contentDescription = "Thumbnail",
                     modifier = Modifier
                         .size(56.dp)
                         .clip(RoundedCornerShape(18.dp)),
@@ -289,7 +289,7 @@ private fun HistoryRecordCard(
         }
         DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
             DropdownMenuItem(
-                text = { Text("重新生成") },
+                text = { Text("Regenerate") },
                 onClick = {
                     menuExpanded = false
                     onRegenerate()
@@ -297,7 +297,7 @@ private fun HistoryRecordCard(
                 leadingIcon = { Icon(Icons.Outlined.Refresh, contentDescription = null) }
             )
             DropdownMenuItem(
-                text = { Text("删除") },
+                text = { Text("Delete") },
                 onClick = {
                     menuExpanded = false
                     onDelete()
@@ -305,7 +305,7 @@ private fun HistoryRecordCard(
                 leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) }
             )
             DropdownMenuItem(
-                text = { Text("分享") },
+                text = { Text("Share") },
                 onClick = {
                     menuExpanded = false
                     onShare()
@@ -344,7 +344,7 @@ private fun RecordDetailDialog(
                     resultUrls.forEach { url ->
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current).data(url).build(),
-                            contentDescription = "生成结果",
+                            contentDescription = "Generated result",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(220.dp)
@@ -355,19 +355,19 @@ private fun RecordDetailDialog(
                     }
                 }
                 if (record.status == GenerationStatus.FAILED) {
-                    Text(record.errorMessage ?: "生成失败", color = MaterialTheme.colorScheme.error)
+                    Text(record.errorMessage ?: "Generation failed", color = MaterialTheme.colorScheme.error)
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Row {
                     Button(onClick = onRegenerate) {
                         Icon(Icons.Outlined.Refresh, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("重新生成")
+                        Text("Regenerate")
                     }
                     Spacer(modifier = Modifier.width(6.dp))
-                    Button(onClick = onShare) { Text("分享") }
+                    Button(onClick = onShare) { Text("Share") }
                     Spacer(modifier = Modifier.width(6.dp))
-                    TextButton(onClick = onDelete) { Text("删除") }
+                    TextButton(onClick = onDelete) { Text("Delete") }
                 }
             }
         }
@@ -378,10 +378,10 @@ private fun relativeTime(timestamp: Long): String {
     val diff = System.currentTimeMillis() - timestamp
     val minutes = diff / 60_000L
     return when {
-        minutes < 1 -> "刚刚"
-        minutes < 60 -> "${minutes} 分钟前"
-        minutes < 24 * 60 -> "${minutes / 60} 小时前"
-        minutes < 7 * 24 * 60 -> "${minutes / (24 * 60)} 天前"
+        minutes < 1 -> "Just now"
+        minutes < 60 -> "${minutes} min ago"
+        minutes < 24 * 60 -> "${minutes / 60} hr ago"
+        minutes < 7 * 24 * 60 -> "${minutes / (24 * 60)} days ago"
         else -> SimpleDateFormat("MM-dd", Locale.getDefault()).format(Date(timestamp))
     }
 }
