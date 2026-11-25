@@ -109,7 +109,7 @@ fun MessageCard(
                             val parsed = Uri.parse(uri)
                             AsyncImage(
                                 model = parsed,
-                                contentDescription = "参考图片",
+                                contentDescription = "Reference image",
                                 modifier = Modifier
                             .width(136.dp)
                             .aspectRatio(1f)
@@ -146,15 +146,15 @@ fun MessageCard(
                         }
                         GenerationStatus.FAILED -> {
                             Text(
-                                text = message.errorMessage ?: "生成失败",
+                                text = message.errorMessage ?: "Generation failed",
                                 color = MaterialTheme.colorScheme.error,
                                 fontSize = 14.sp
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(onClick = { onRetry(message) }) {
-                                    Icon(Icons.Outlined.Refresh, contentDescription = "重试")
+                                    Icon(Icons.Outlined.Refresh, contentDescription = "Retry")
                                 }
-                                Text("重试", color = MaterialTheme.colorScheme.primary)
+                                Text("Retry", color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
@@ -189,7 +189,7 @@ private fun ImageResultGrid(
                     val index = rowIndex * 2 + columnIndex
                     AsyncImage(
                         model = url,
-                        contentDescription = "生成结果 $index",
+                        contentDescription = "Generated result $index",
                         modifier = Modifier
                             .weight(1f)
                             .aspectRatio(1f)
@@ -217,13 +217,13 @@ private fun MessageActions(
             onClick = { onDownload(url, isVideo) },
             modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
         ) {
-            Icon(Icons.Outlined.Download, contentDescription = "下载")
+            Icon(Icons.Outlined.Download, contentDescription = "Download")
         }
         IconButton(
             onClick = { onShare(url, isVideo) },
             modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
         ) {
-            Icon(Icons.Outlined.Share, contentDescription = "分享")
+            Icon(Icons.Outlined.Share, contentDescription = "Share")
         }
     }
 }
