@@ -173,7 +173,7 @@ fun SettingsScreen(
     if (showHistoryDialog) {
         AlertDialog(
             onDismissRequest = { showHistoryDialog = false },
-            title = { Text("确认Clear History？") },
+            title = { Text("Clear all history?") },
             text = { Text("This action cannot be undone.") },
             confirmButton = {
                 TextButton(onClick = {
@@ -189,7 +189,7 @@ fun SettingsScreen(
     if (showCacheDialog) {
         AlertDialog(
             onDismissRequest = { showCacheDialog = false },
-            title = { Text("确认Clear Cache？") },
+            title = { Text("Clear cache?") },
             text = { Text("Temporary downloaded files will be deleted. History will not be affected.") },
             confirmButton = {
                 TextButton(onClick = {
