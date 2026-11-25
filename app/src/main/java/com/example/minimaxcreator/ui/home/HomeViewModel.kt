@@ -12,12 +12,14 @@ import com.example.minimaxcreator.data.local.db.PlatformType
 import com.example.minimaxcreator.data.local.db.SubMode
 import com.example.minimaxcreator.data.local.db.TopMode
 import com.example.minimaxcreator.data.local.db.toEntity
+import com.example.minimaxcreator.data.model.AgnesVideoParams
 import com.example.minimaxcreator.data.model.MiniMaxImageParams
 import com.example.minimaxcreator.data.model.MiniMaxVideoParams
 import com.example.minimaxcreator.data.model.ModelCatalog
 import com.example.minimaxcreator.data.model.ModelParams
 import com.example.minimaxcreator.data.model.QwenImageParams
 import com.example.minimaxcreator.data.model.QwenVideoParams
+import com.example.minimaxcreator.data.remote.api.AgnesVideoCreateRequest
 import com.example.minimaxcreator.data.remote.dto.ImageGenerationRequest
 import com.example.minimaxcreator.data.remote.dto.ImageSubjectReference
 import com.example.minimaxcreator.data.remote.dto.QwenImageContent
@@ -88,6 +90,7 @@ class HomeViewModel @Inject constructor(
                     current.copy(
                         miniMaxApiKey = settings.miniMaxApiKey,
                         qwenApiKey = settings.qwenApiKey,
+                        agnesApiKey = settings.agnesApiKey,
                         defaultImageModel = settings.defaultImageModel,
                         defaultVideoModel = settings.defaultVideoModel,
                         modelParams = settings.modelParams,
@@ -143,6 +146,7 @@ class HomeViewModel @Inject constructor(
                 is QwenVideoParams -> 1
                 is MiniMaxImageParams -> 1
                 is MiniMaxVideoParams -> 1
+                is AgnesVideoParams -> 0
             }
             if (it.attachments.size >= max) it
             else it.copy(
@@ -244,10 +248,12 @@ class HomeViewModel @Inject constructor(
         val platformKey = when (params.platform) {
             PlatformType.MINIMAX -> state.miniMaxApiKey
             PlatformType.QWEN -> state.qwenApiKey
+            PlatformType.AGNES -> state.agnesApiKey
         }
         if (platformKey.isBlank()) {
             _events.emit(
                 if (params.platform == PlatformType.MINIMAX) "Please configure your MiniMax API Key first"
+                else if (params.platform == PlatformType.AGNES) "Please configure your Agnes API Key in Settings"
                 else "Please configure your Qwen (DashScope) API Key first"
             )
             return
@@ -309,6 +315,7 @@ class HomeViewModel @Inject constructor(
                 is QwenImageParams -> generateQwenImage(aiMessage, params, dataUris)
                 is MiniMaxVideoParams -> generateMiniMaxVideo(aiMessage, params, dataUris)
                 is QwenVideoParams -> generateQwenVideo(aiMessage, params, dataUris)
+                is AgnesVideoParams -> generateAgnesVideo(aiMessage, params, state.agnesApiKey, dataUris)
             }
         } catch (t: Throwable) {
             val failed = aiMessage.copy(
@@ -451,6 +458,33 @@ class HomeViewModel @Inject constructor(
         completeWithUrls(message.copy(taskId = taskId), urls, true)
     }
 
+
+    private suspend fun generateAgnesVideo(
+        message: ChatMessage,
+        params: AgnesVideoParams,
+        apiKey: String,
+        dataUris: List<String>
+    ) {
+        require(dataUris.isEmpty()) { "Agnes Video 2.5 Flash currently supports Text-to-Video only. Remove the reference image." }
+        val taskId = repository.createAgnesVideoTask(
+            apiKey,
+            AgnesVideoCreateRequest(
+                prompt = message.prompt.take(20000),
+                seconds = params.seconds.toString(),
+                size = "720P",
+                aspect_ratio = params.aspectRatio,
+                seed = params.seed
+            )
+        )
+        val queued = message.copy(taskId = taskId, progressText = "Agnes: queued…")
+        updateMessage(queued)
+        repository.upsertRecord(queued.toRecord().toEntity())
+        val urls = repository.pollAgnesVideo(apiKey, taskId) { status, taskMessage ->
+            updateVideoProgress(message, taskId, status, taskMessage)
+        }
+        completeWithUrls(message.copy(taskId = taskId), urls, true)
+    }
+
     private suspend fun updateVideoProgress(
         message: ChatMessage,
         taskId: String,
@@ -513,6 +547,10 @@ class HomeViewModel @Inject constructor(
                 if (attachments.size > 1) error("Qwen image-to-video supports only 1 first-frame image")
                 require(params.duration in 2..30) { "Qwen video duration must be between 2 and 30 seconds" }
             }
+            is AgnesVideoParams -> {
+                require(attachments.isEmpty()) { "Agnes Flash currently supports Text-to-Video only" }
+                require(params.seconds in 4..12) { "Agnes video duration must be between 4 and 12 seconds" }
+            }
         }
     }
 
@@ -560,6 +598,7 @@ class HomeViewModel @Inject constructor(
             is QwenImageParams -> 10L * 1024L * 1024L
             is MiniMaxVideoParams -> 30L * 1024L * 1024L
             is MiniMaxImageParams -> 10L * 1024L * 1024L
+            is AgnesVideoParams -> 1L
         }
     }
 
