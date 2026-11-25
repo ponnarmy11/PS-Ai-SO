@@ -79,7 +79,7 @@ class HistoryViewModel @Inject constructor(
         viewModelScope.launch {
             repository.deleteRecords(selected.toList())
             _uiState.update { it.copy(selectionMode = false, selectedIds = emptySet()) }
-            _events.emit("Deleted ${selected.size} 条记录")
+            _events.emit("Deleted ${selected.size} records")
         }
     }
 
