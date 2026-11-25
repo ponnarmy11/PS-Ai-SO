@@ -183,7 +183,7 @@ fun HistoryScreen(
     if (deleteDialog) {
         AlertDialog(
             onDismissRequest = { deleteDialog = false },
-            title = { Text("清除History") },
+            title = { Text("Clear History") },
             text = { Text("Delete all history records?") },
             confirmButton = {
                 TextButton(onClick = {
