@@ -65,6 +65,7 @@ data class AgnesVideoParams(
     override val topMode: TopMode = TopMode.VIDEO
 }
 
+@Serializable
 data class QwenVideoParams(
     override val model: String = ModelCatalog.QWEN_VIDEO,
     val resolution: String = "480P",
