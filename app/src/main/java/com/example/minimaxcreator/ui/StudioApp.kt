@@ -64,7 +64,8 @@ fun StudioApp() {
             if (
                 !settingsState.isLoading &&
                 settingsState.settings.miniMaxApiKey.isBlank() &&
-                settingsState.settings.qwenApiKey.isBlank()
+                settingsState.settings.qwenApiKey.isBlank() &&
+                settingsState.settings.agnesApiKey.isBlank()
             ) {
                 ApiKeyDialog(onSave = settingsViewModel::saveKeys)
             }
