@@ -298,13 +298,15 @@ private fun SeedanceVideoPanel(
 private fun FalVideoPanel(params: FalVideoParams, onParamsChange: (FalVideoParams) -> Unit) {
     val hailuo = params.model == ModelCatalog.HAILUO_23
     if (!hailuo) {
-        SimpleChips("Resolution", listOf("720p", "1080p", "4k"), params.resolution) {
+        val resolutions = if (params.model == ModelCatalog.WAN_30) listOf("480p", "720p", "1080p") else listOf("720p", "1080p", "4k")
+        SimpleChips("Resolution", resolutions, params.resolution) {
             onParamsChange(params.copy(resolution = it))
         }
         SliderText("Duration: ${params.duration} sec", params.duration.toFloat(), 3f, 30f, 26) {
             onParamsChange(params.copy(duration = it.roundToInt().coerceIn(3, 30)))
         }
-        SimpleChips("Aspect Ratio", listOf("16:9", "9:16", "1:1", "4:3", "3:4", "21:9"), params.ratio) {
+        val ratios = if (params.model == ModelCatalog.WAN_30) listOf("adaptive", "16:9", "4:3", "1:1", "3:4", "9:16") else listOf("16:9", "9:16", "1:1", "4:3", "3:4", "21:9")
+        SimpleChips("Aspect Ratio", ratios, params.ratio) {
             onParamsChange(params.copy(ratio = it))
         }
         if (params.model == ModelCatalog.WAN_30) {
