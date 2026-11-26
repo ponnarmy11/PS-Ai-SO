@@ -538,6 +538,7 @@ class HomeViewModel @Inject constructor(
             duration = params.duration,
             aspectRatio = params.ratio,
             audio = params.generateAudio,
+            promptOptimizer = params.promptOptimizer,
             imageUrl = dataUris.firstOrNull()
         )
         val requestId = repository.createFalVideoTask(apiKey, params.model, mode, request)
