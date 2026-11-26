@@ -15,6 +15,7 @@ data class FalVideoRequest(
     val duration: Int = 5,
     @SerialName("aspect_ratio") val aspectRatio: String = "16:9",
     val audio: Boolean = true,
+    @SerialName("prompt_optimizer") val promptOptimizer: Boolean = true,
     @SerialName("image_url") val imageUrl: String? = null
 )
 
