@@ -6,6 +6,8 @@ import com.example.minimaxcreator.data.remote.api.MiniMaxApiService
 import com.example.minimaxcreator.data.remote.api.AgnesApiService
 import com.example.minimaxcreator.data.remote.api.SeedanceApiService
 import com.example.minimaxcreator.data.remote.api.SeedanceVideoRequest
+import com.example.minimaxcreator.data.remote.api.FalVideoApiService
+import com.example.minimaxcreator.data.remote.api.FalVideoRequest
 import com.example.minimaxcreator.data.remote.api.AgnesVideoCreateRequest
 import com.example.minimaxcreator.data.remote.api.QwenApiService
 import com.example.minimaxcreator.data.remote.dto.ImageGenerationRequest
@@ -29,6 +31,7 @@ class GenerationRepository @Inject constructor(
     private val qwenApi: QwenApiService,
     private val agnesApi: AgnesApiService,
     private val seedanceApi: SeedanceApiService,
+    private val falVideoApi: FalVideoApiService,
     private val dao: GenerationRecordDao
 ) {
     suspend fun generateMiniMaxImage(request: ImageGenerationRequest): ImageGenerationResponse {
@@ -133,6 +136,41 @@ class GenerationRepository @Inject constructor(
             }
         }
         error("Seedance video generation timed out. Check History before retrying.")
+    }
+
+    suspend fun createFalVideoTask(apiKey: String, model: String, mode: String, request: FalVideoRequest): String {
+        val response = falVideoApi.createVideo("Bearer $apiKey", model, mode, request)
+        return response.requestId?.takeIf { it.isNotBlank() }
+            ?: error(response.error ?: "fal.ai did not return a request ID")
+    }
+
+    suspend fun pollFalVideo(
+        apiKey: String,
+        model: String,
+        mode: String,
+        requestId: String,
+        onProgress: suspend (status: String, message: String?) -> Unit
+    ): List<String> {
+        val authorization = "Bearer $apiKey"
+        var interval = 3_000L
+        val timeout = System.currentTimeMillis() + 30 * 60 * 1000L
+        while (System.currentTimeMillis() < timeout) {
+            delay(interval)
+            val status = falVideoApi.queryStatus(authorization, model, mode, requestId)
+            when (status.status?.uppercase()) {
+                "COMPLETED" -> {
+                    val result = falVideoApi.getResult(authorization, model, mode, requestId)
+                    return listOfNotNull(result.video?.url)
+                        .ifEmpty { error(result.error ?: "fal.ai completed but returned no video URL") }
+                }
+                "FAILED", "ERROR" -> error(status.error ?: status.logs?.lastOrNull()?.message ?: "fal.ai video generation failed")
+                else -> {
+                    onProgress(status.status ?: "IN_PROGRESS", status.logs?.lastOrNull()?.message)
+                    interval = (interval * 1.25).coerceAtMost(8_000.0).toLong()
+                }
+            }
+        }
+        error("fal.ai video generation timed out. Check History before retrying.")
     }
 
     suspend fun generateQwenImage(request: QwenImageGenerationRequest): QwenImageGenerationResponse {
