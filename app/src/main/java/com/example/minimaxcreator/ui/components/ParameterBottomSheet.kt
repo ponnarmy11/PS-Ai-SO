@@ -307,8 +307,10 @@ private fun FalVideoPanel(params: FalVideoParams, onParamsChange: (FalVideoParam
         SimpleChips("Aspect Ratio", listOf("16:9", "9:16", "1:1", "4:3", "3:4", "21:9"), params.ratio) {
             onParamsChange(params.copy(ratio = it))
         }
-        SwitchRow("Generate Audio", params.generateAudio) {
-            onParamsChange(params.copy(generateAudio = it))
+        if (params.model == ModelCatalog.WAN_30) {
+            SwitchRow("Generate Audio", params.generateAudio) {
+                onParamsChange(params.copy(generateAudio = it))
+            }
         }
     } else {
         Text("Hailuo 2.3 Pro · 1080p · provider-defined duration", color = MaterialTheme.colorScheme.onSurfaceVariant)
