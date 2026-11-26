@@ -495,6 +495,7 @@ class HomeViewModel @Inject constructor(
             taskId = taskId,
             progressText = when (status.lowercase()) {
                 "queued", "pending" -> "Queued…"
+                "retrying" -> taskMessage ?: "Agnes temporarily unavailable. Retrying…"
                 "running" -> "Processing…"
                 else -> "Processing…"
             },
@@ -625,16 +626,25 @@ class HomeViewModel @Inject constructor(
 
     private fun friendlyError(error: Throwable): String {
         return when (error) {
-            is HttpException -> when (error.code()) {
-                401, 2049 -> "Invalid API Key. Check Settings."
-                402, 1008 -> "Insufficient account balance. Check your account."
-                429, 1002 -> "Too many requests. Please try again later."
-                500, 503 -> "Server is busy. Please try again later."
-                else -> "Request failed (${error.code()})"
+            is HttpException -> {
+                val details = runCatching { error.response()?.errorBody()?.string() }
+                    .getOrNull()
+                    ?.trim()
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.take(400)
+                val reason = when (error.code()) {
+                    400 -> "Agnes rejected the video request"
+                    401, 403 -> "Agnes API key is invalid or does not have access"
+                    402 -> "Agnes account balance or quota is insufficient"
+                    408 -> "Agnes request timed out"
+                    429 -> "Agnes rate limit reached"
+                    in 500..599 -> "Agnes service is temporarily unavailable"
+                    else -> "Agnes request failed (HTTP ${error.code()})"
+                }
+                if (details != null) "$reason: $details" else reason
             }
             is UnknownHostException -> "Network connection failed. Check your internet connection."
-            is SocketTimeoutException -> "Network connection timed out. Please try again later."
+            is SocketTimeoutException -> "Agnes connection timed out. Check History before retrying."
             else -> error.message ?: "Generation failed"
         }
-    }
-}
+    }}
