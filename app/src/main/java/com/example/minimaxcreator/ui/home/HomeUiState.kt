@@ -20,6 +20,7 @@ data class HomeUiState(
     val miniMaxApiKey: String = "",
     val qwenApiKey: String = "",
     val agnesApiKey: String = "",
+    val falApiKey: String = "",
     val defaultImageModel: String = ModelCatalog.MINIMAX_IMAGE_01,
     val defaultVideoModel: String = ModelCatalog.MINIMAX_H3,
     val autoSave: Boolean = false,
