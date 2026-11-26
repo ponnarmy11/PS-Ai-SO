@@ -118,7 +118,6 @@ API keys are stored locally using AndroidKeyStore-encrypted DataStore preference
 | MiniMax | `image-01`, `image-01-live`, `MiniMax-H3` |
 | Qwen | `qwen-image-3.0-pro`, `wan3.0-video` |
 | fal.ai | `Seedance 2.5` (text-to-video and image-to-video) |
-| fal.ai | `Seedance 2.5` (text-to-video and image-to-video) |
 
 ### CI
 
