@@ -647,4 +647,5 @@ class HomeViewModel @Inject constructor(
             is SocketTimeoutException -> "Agnes connection timed out. Check History before retrying."
             else -> error.message ?: "Generation failed"
         }
-    }}
+    }
+}
