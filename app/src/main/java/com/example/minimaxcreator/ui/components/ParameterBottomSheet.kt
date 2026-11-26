@@ -312,8 +312,8 @@ private fun FalVideoPanel(params: FalVideoParams, onParamsChange: (FalVideoParam
         }
     } else {
         Text("Hailuo 2.3 Pro · 1080p · provider-defined duration", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        SwitchRow("Prompt Optimizer", params.generateAudio) {
-            onParamsChange(params.copy(generateAudio = it))
+        SwitchRow("Prompt Optimizer", params.promptOptimizer) {
+            onParamsChange(params.copy(promptOptimizer = it))
         }
     }
     Text("fal.ai · uses your saved fal API key", color = MaterialTheme.colorScheme.onSurfaceVariant)
