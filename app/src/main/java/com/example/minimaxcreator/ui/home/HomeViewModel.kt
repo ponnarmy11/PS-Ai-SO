@@ -20,8 +20,10 @@ import com.example.minimaxcreator.data.model.ModelParams
 import com.example.minimaxcreator.data.model.QwenImageParams
 import com.example.minimaxcreator.data.model.QwenVideoParams
 import com.example.minimaxcreator.data.model.SeedanceVideoParams
+import com.example.minimaxcreator.data.model.FalVideoParams
 import com.example.minimaxcreator.data.remote.api.AgnesVideoCreateRequest
 import com.example.minimaxcreator.data.remote.api.SeedanceVideoRequest
+import com.example.minimaxcreator.data.remote.api.FalVideoRequest
 import com.example.minimaxcreator.data.remote.dto.ImageGenerationRequest
 import com.example.minimaxcreator.data.remote.dto.ImageSubjectReference
 import com.example.minimaxcreator.data.remote.dto.QwenImageContent
@@ -151,6 +153,7 @@ class HomeViewModel @Inject constructor(
                 is MiniMaxVideoParams -> 1
                 is AgnesVideoParams -> 0
                 is SeedanceVideoParams -> 1
+                is FalVideoParams -> 1
             }
             if (it.attachments.size >= max) it
             else it.copy(
@@ -323,6 +326,7 @@ class HomeViewModel @Inject constructor(
                 is QwenVideoParams -> generateQwenVideo(aiMessage, params, dataUris)
                 is AgnesVideoParams -> generateAgnesVideo(aiMessage, params, state.agnesApiKey, dataUris)
                 is SeedanceVideoParams -> generateSeedanceVideo(aiMessage, params, state.falApiKey, dataUris)
+                is FalVideoParams -> generateFalVideo(aiMessage, params, state.falApiKey, dataUris)
             }
         } catch (t: Throwable) {
             val failed = aiMessage.copy(
@@ -519,6 +523,33 @@ class HomeViewModel @Inject constructor(
         completeWithUrls(message.copy(taskId = requestId), urls, true)
     }
 
+    private suspend fun generateFalVideo(
+        message: ChatMessage,
+        params: FalVideoParams,
+        apiKey: String,
+        dataUris: List<String>
+    ) {
+        val imageToVideo = message.type == GenerationType.IMAGE_TO_VIDEO
+        if (imageToVideo) require(dataUris.isNotEmpty()) { "Select a starting image for Image-to-Video" }
+        val mode = if (imageToVideo) "image-to-video" else "text-to-video"
+        val request = FalVideoRequest(
+            prompt = message.prompt.take(20000),
+            resolution = params.resolution,
+            duration = params.duration,
+            aspectRatio = params.ratio,
+            audio = params.generateAudio,
+            imageUrl = dataUris.firstOrNull()
+        )
+        val requestId = repository.createFalVideoTask(apiKey, params.model, mode, request)
+        val queued = message.copy(taskId = requestId, progressText = "${ModelCatalog.displayName(params.model)}: queued…")
+        updateMessage(queued)
+        repository.upsertRecord(queued.toRecord().toEntity())
+        val urls = repository.pollFalVideo(apiKey, params.model, mode, requestId) { status, taskMessage ->
+            updateVideoProgress(message, requestId, status, taskMessage)
+        }
+        completeWithUrls(message.copy(taskId = requestId), urls, true)
+    }
+
     private suspend fun updateVideoProgress(
         message: ChatMessage,
         taskId: String,
@@ -586,6 +617,10 @@ class HomeViewModel @Inject constructor(
             is SeedanceVideoParams -> {
                 if (attachments.size > 1) error("Seedance image-to-video supports one starting image")
                 require(params.duration in 4..30) { "Seedance duration must be between 4 and 30 seconds" }
+            }
+            is FalVideoParams -> {
+                if (attachments.size > 1) error("fal.ai image-to-video supports one starting image")
+                require(params.duration in 3..30) { "Video duration must be between 3 and 30 seconds" }
             }
             is AgnesVideoParams -> {
                 require(attachments.isEmpty()) { "Agnes Flash currently supports Text-to-Video only" }
