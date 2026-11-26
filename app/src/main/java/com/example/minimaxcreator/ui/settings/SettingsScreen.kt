@@ -51,15 +51,15 @@ fun SettingsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var miniMaxKey by remember { mutableStateOf(state.settings.miniMaxApiKey) }
     var qwenKey by remember { mutableStateOf(state.settings.qwenApiKey) }
-    var agnesKey by remember { mutableStateOf(state.settings.agnesApiKey) }
-    var agnesSaveStatus by remember { mutableStateOf<String?>(null) }
+    var falKey by remember { mutableStateOf(state.settings.falApiKey) }
+    var falSaveStatus by remember { mutableStateOf<String?>(null) }
     var showHistoryDialog by remember { mutableStateOf(false) }
     var showCacheDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.settings.miniMaxApiKey, state.settings.qwenApiKey, state.settings.agnesApiKey) {
+    LaunchedEffect(state.settings.miniMaxApiKey, state.settings.qwenApiKey, state.settings.falApiKey) {
         miniMaxKey = state.settings.miniMaxApiKey
         qwenKey = state.settings.qwenApiKey
-        agnesKey = state.settings.agnesApiKey
+        falKey = state.settings.falApiKey
     }
 
     Column(
@@ -93,29 +93,29 @@ fun SettingsScreen(
                 label = "Qwen (DashScope) API Key"
             )
             KeyField(
-                value = agnesKey,
-                onValueChange = { agnesKey = it; agnesSaveStatus = null },
-                label = "Agnes AI API Key"
+                value = falKey,
+                onValueChange = { falKey = it; falSaveStatus = null },
+                label = "fal.ai API Key"
             )
             Button(
                 onClick = {
-                    agnesSaveStatus = "Saving Agnes API key..."
-                    viewModel.saveAgnesApiKey(agnesKey) { saved ->
-                        agnesSaveStatus = if (saved) "Agnes API key saved securely." else "Could not save Agnes API key. Please try again."
+                    falSaveStatus = "Saving fal.ai API key..."
+                    viewModel.saveFalApiKey(falKey) { saved ->
+                        falSaveStatus = if (saved) "fal.ai API key saved securely." else "Could not save fal.ai API key. Please try again."
                     }
                 },
-                enabled = agnesKey.isNotBlank(),
+                enabled = falKey.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Save Agnes API Key")
+                Text("Save fal.ai API Key")
             }
-            agnesSaveStatus?.let { status ->
+            falSaveStatus?.let { status ->
                 Text(status, style = MaterialTheme.typography.bodySmall)
             }
             Spacer(modifier = Modifier.height(8.dp))
             Button(
-                onClick = { viewModel.saveKeys(miniMaxKey, qwenKey, agnesKey) },
-                enabled = miniMaxKey.isNotBlank() || qwenKey.isNotBlank() || agnesKey.isNotBlank(),
+                onClick = { viewModel.saveKeys(miniMaxKey, qwenKey) },
+                enabled = miniMaxKey.isNotBlank() || qwenKey.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Save API Keys")
@@ -188,7 +188,7 @@ fun SettingsScreen(
             Text("About", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text("Studio 2.2.2")
-            Text("Only user input is sent to MiniMax and Qwen APIs. No other data is collected.")
+            Text("Only your prompts and selected media are sent to the selected AI provider.")
         }
         Spacer(modifier = Modifier.height(32.dp))
     }
