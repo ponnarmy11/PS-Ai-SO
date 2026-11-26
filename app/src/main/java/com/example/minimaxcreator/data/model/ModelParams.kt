@@ -67,6 +67,18 @@ data class AgnesVideoParams(
 }
 
 @Serializable
+data class SeedanceVideoParams(
+    override val model: String = ModelCatalog.SEEDANCE_25,
+    val resolution: String = "720p",
+    val duration: Int = 5,
+    val ratio: String = "16:9",
+    val generateAudio: Boolean = true
+) : ModelParams {
+    override val platform: PlatformType = PlatformType.FAL
+    override val topMode: TopMode = TopMode.VIDEO
+}
+
+@Serializable
 data class QwenVideoParams(
     override val model: String = ModelCatalog.QWEN_VIDEO,
     val resolution: String = "480P",
@@ -90,9 +102,10 @@ object ModelCatalog {
     const val MINIMAX_H3 = "MiniMax-H3"
     const val QWEN_VIDEO = "wan3.0-video"
     const val AGNES_VIDEO_FLASH = "agnes-video-2.5-flash"
+    const val SEEDANCE_25 = "Seedance 2.5"
 
     val IMAGE_MODELS = listOf(MINIMAX_IMAGE_01, MINIMAX_IMAGE_01_LIVE, QWEN_IMAGE)
-    val VIDEO_MODELS = listOf(MINIMAX_H3, QWEN_VIDEO, AGNES_VIDEO_FLASH)
+    val VIDEO_MODELS = listOf(MINIMAX_H3, QWEN_VIDEO, SEEDANCE_25)
 
     fun isQwenImage(model: String): Boolean = model == QWEN_IMAGE
     fun isQwen(model: String): Boolean = model == QWEN_IMAGE || model == QWEN_VIDEO
@@ -103,6 +116,7 @@ object ModelCatalog {
             topMode == TopMode.IMAGE && model == QWEN_IMAGE -> QwenImageParams()
             topMode == TopMode.VIDEO && model == QWEN_VIDEO -> QwenVideoParams()
             topMode == TopMode.VIDEO && model == AGNES_VIDEO_FLASH -> AgnesVideoParams()
+            topMode == TopMode.VIDEO && model == SEEDANCE_25 -> SeedanceVideoParams()
             topMode == TopMode.IMAGE -> MiniMaxImageParams(model = model)
             else -> MiniMaxVideoParams()
         }
@@ -115,6 +129,7 @@ object ModelCatalog {
             is MiniMaxVideoParams -> json.encodeToString(MiniMaxVideoParams.serializer(), params)
             is QwenVideoParams -> json.encodeToString(QwenVideoParams.serializer(), params)
             is AgnesVideoParams -> json.encodeToString(AgnesVideoParams.serializer(), params)
+            is SeedanceVideoParams -> json.encodeToString(SeedanceVideoParams.serializer(), params)
         }
     }
 
@@ -133,12 +148,13 @@ object ModelCatalog {
                 is MiniMaxVideoParams -> json.decodeFromString(MiniMaxVideoParams.serializer(), raw)
                 is QwenVideoParams -> json.decodeFromString(QwenVideoParams.serializer(), raw)
                 is AgnesVideoParams -> json.decodeFromString(AgnesVideoParams.serializer(), raw)
+                is SeedanceVideoParams -> json.decodeFromString(SeedanceVideoParams.serializer(), raw)
             }
         }.getOrDefault(fallback)
     }
 
     fun platformFor(model: String): PlatformType {
-        return when (model) { AGNES_VIDEO_FLASH -> PlatformType.AGNES; QWEN_IMAGE, QWEN_VIDEO -> PlatformType.QWEN; else -> PlatformType.MINIMAX }
+        return when (model) { AGNES_VIDEO_FLASH -> PlatformType.AGNES; SEEDANCE_25 -> PlatformType.FAL; QWEN_IMAGE, QWEN_VIDEO -> PlatformType.QWEN; else -> PlatformType.MINIMAX }
     }
 
     fun subModeFor(model: String, topMode: TopMode, hasImage: Boolean): SubMode {

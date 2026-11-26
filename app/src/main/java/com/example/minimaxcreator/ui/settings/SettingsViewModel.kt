@@ -68,6 +68,19 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun saveFalApiKey(value: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val result = runCatching { settingsRepository.setFalApiKey(value) }
+            result.onSuccess {
+                _events.emit("fal.ai API Key saved")
+                onResult(true)
+            }.onFailure {
+                _events.emit("fal.ai API Key save failed")
+                onResult(false)
+            }
+        }
+    }
+
     fun saveAgnesApiKey(value: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             val result = runCatching { settingsRepository.setAgnesApiKey(value) }

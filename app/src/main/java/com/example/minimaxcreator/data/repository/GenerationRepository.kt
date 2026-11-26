@@ -4,6 +4,8 @@ import com.example.minimaxcreator.data.local.db.GenerationRecordDao
 import com.example.minimaxcreator.data.local.db.GenerationRecordEntity
 import com.example.minimaxcreator.data.remote.api.MiniMaxApiService
 import com.example.minimaxcreator.data.remote.api.AgnesApiService
+import com.example.minimaxcreator.data.remote.api.SeedanceApiService
+import com.example.minimaxcreator.data.remote.api.SeedanceVideoRequest
 import com.example.minimaxcreator.data.remote.api.AgnesVideoCreateRequest
 import com.example.minimaxcreator.data.remote.api.QwenApiService
 import com.example.minimaxcreator.data.remote.dto.ImageGenerationRequest
@@ -26,6 +28,7 @@ class GenerationRepository @Inject constructor(
     private val miniMaxApi: MiniMaxApiService,
     private val qwenApi: QwenApiService,
     private val agnesApi: AgnesApiService,
+    private val seedanceApi: SeedanceApiService,
     private val dao: GenerationRecordDao
 ) {
     suspend fun generateMiniMaxImage(request: ImageGenerationRequest): ImageGenerationResponse {
@@ -92,6 +95,44 @@ class GenerationRepository @Inject constructor(
             }
         }
         error("Agnes video generation timed out. Check History before retrying.")
+    }
+
+    suspend fun createSeedanceVideoTask(
+        apiKey: String,
+        mode: String,
+        request: SeedanceVideoRequest
+    ): String {
+        val response = seedanceApi.createVideo("Bearer $apiKey", mode, request)
+        return response.requestId?.takeIf { it.isNotBlank() }
+            ?: error(response.error ?: "Seedance did not return a request ID")
+    }
+
+    suspend fun pollSeedanceVideo(
+        apiKey: String,
+        mode: String,
+        requestId: String,
+        onProgress: suspend (status: String, message: String?) -> Unit
+    ): List<String> {
+        val authorization = "Bearer $apiKey"
+        var interval = 3_000L
+        val timeout = System.currentTimeMillis() + 30 * 60 * 1000L
+        while (System.currentTimeMillis() < timeout) {
+            delay(interval)
+            val status = seedanceApi.queryStatus(authorization, mode, requestId)
+            when (status.status?.uppercase()) {
+                "COMPLETED" -> {
+                    val result = seedanceApi.getResult(authorization, mode, requestId)
+                    return listOfNotNull(result.video?.url)
+                        .ifEmpty { error(result.error ?: "Seedance completed but returned no video URL") }
+                }
+                "FAILED", "ERROR" -> error(status.error ?: status.logs?.lastOrNull()?.message ?: "Seedance video generation failed")
+                else -> {
+                    onProgress(status.status ?: "IN_PROGRESS", status.logs?.lastOrNull()?.message)
+                    interval = (interval * 1.25).coerceAtMost(8_000.0).toLong()
+                }
+            }
+        }
+        error("Seedance video generation timed out. Check History before retrying.")
     }
 
     suspend fun generateQwenImage(request: QwenImageGenerationRequest): QwenImageGenerationResponse {
