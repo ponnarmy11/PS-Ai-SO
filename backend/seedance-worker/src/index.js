@@ -31,7 +31,7 @@ function json(data, status = 200) {
 
 function getFalKey(request) {
   const value = request.headers.get("Authorization") || "";
-  const match = value.match(/^Bearer\\s+(.+)$/i);
+  const match = value.match(/^Bearer\s+(.+)$/i);
   return match?.[1]?.trim() || null;
 }
 
@@ -41,7 +41,7 @@ function validPrompt(value) {
 
 function validImage(value) {
   return typeof value === "string" &&
-    (/^https:\\/\\//i.test(value) || /^data:image\\/(jpeg|png|webp);base64,/i.test(value)) &&
+    (/^https:\/\//i.test(value) || /^data:image\/(jpeg|png|webp);base64,/i.test(value)) &&
     value.length <= 42_000_000;
 }
 
