@@ -19,7 +19,9 @@ import com.example.minimaxcreator.data.model.ModelCatalog
 import com.example.minimaxcreator.data.model.ModelParams
 import com.example.minimaxcreator.data.model.QwenImageParams
 import com.example.minimaxcreator.data.model.QwenVideoParams
+import com.example.minimaxcreator.data.model.SeedanceVideoParams
 import com.example.minimaxcreator.data.remote.api.AgnesVideoCreateRequest
+import com.example.minimaxcreator.data.remote.api.SeedanceVideoRequest
 import com.example.minimaxcreator.data.remote.dto.ImageGenerationRequest
 import com.example.minimaxcreator.data.remote.dto.ImageSubjectReference
 import com.example.minimaxcreator.data.remote.dto.QwenImageContent
@@ -91,6 +93,7 @@ class HomeViewModel @Inject constructor(
                         miniMaxApiKey = settings.miniMaxApiKey,
                         qwenApiKey = settings.qwenApiKey,
                         agnesApiKey = settings.agnesApiKey,
+                        falApiKey = settings.falApiKey,
                         defaultImageModel = settings.defaultImageModel,
                         defaultVideoModel = settings.defaultVideoModel,
                         modelParams = settings.modelParams,
@@ -147,6 +150,7 @@ class HomeViewModel @Inject constructor(
                 is MiniMaxImageParams -> 1
                 is MiniMaxVideoParams -> 1
                 is AgnesVideoParams -> 0
+                is SeedanceVideoParams -> 1
             }
             if (it.attachments.size >= max) it
             else it.copy(
@@ -249,11 +253,13 @@ class HomeViewModel @Inject constructor(
             PlatformType.MINIMAX -> state.miniMaxApiKey
             PlatformType.QWEN -> state.qwenApiKey
             PlatformType.AGNES -> state.agnesApiKey
+            PlatformType.FAL -> state.falApiKey
         }
         if (platformKey.isBlank()) {
             _events.emit(
                 if (params.platform == PlatformType.MINIMAX) "Please configure your MiniMax API Key first"
                 else if (params.platform == PlatformType.AGNES) "Please configure your Agnes API Key in Settings"
+                else if (params.platform == PlatformType.FAL) "Please configure your fal.ai API Key in Settings"
                 else "Please configure your Qwen (DashScope) API Key first"
             )
             return
@@ -316,6 +322,7 @@ class HomeViewModel @Inject constructor(
                 is MiniMaxVideoParams -> generateMiniMaxVideo(aiMessage, params, dataUris)
                 is QwenVideoParams -> generateQwenVideo(aiMessage, params, dataUris)
                 is AgnesVideoParams -> generateAgnesVideo(aiMessage, params, state.agnesApiKey, dataUris)
+                is SeedanceVideoParams -> generateSeedanceVideo(aiMessage, params, state.falApiKey, dataUris)
             }
         } catch (t: Throwable) {
             val failed = aiMessage.copy(
@@ -485,6 +492,33 @@ class HomeViewModel @Inject constructor(
         completeWithUrls(message.copy(taskId = taskId), urls, true)
     }
 
+    private suspend fun generateSeedanceVideo(
+        message: ChatMessage,
+        params: SeedanceVideoParams,
+        apiKey: String,
+        dataUris: List<String>
+    ) {
+        val imageToVideo = message.type == GenerationType.IMAGE_TO_VIDEO
+        if (imageToVideo) require(dataUris.isNotEmpty()) { "Select a starting image for Image-to-Video" }
+        val mode = if (imageToVideo) "image-to-video" else "text-to-video"
+        val request = SeedanceVideoRequest(
+            prompt = message.prompt.take(20000),
+            resolution = params.resolution,
+            duration = params.duration.toString(),
+            aspectRatio = if (imageToVideo) "auto" else params.ratio,
+            generateAudio = params.generateAudio,
+            imageUrl = dataUris.firstOrNull()
+        )
+        val requestId = repository.createSeedanceVideoTask(apiKey, mode, request)
+        val queued = message.copy(taskId = requestId, progressText = "Seedance: queued…")
+        updateMessage(queued)
+        repository.upsertRecord(queued.toRecord().toEntity())
+        val urls = repository.pollSeedanceVideo(apiKey, mode, requestId) { status, taskMessage ->
+            updateVideoProgress(message, requestId, status, taskMessage)
+        }
+        completeWithUrls(message.copy(taskId = requestId), urls, true)
+    }
+
     private suspend fun updateVideoProgress(
         message: ChatMessage,
         taskId: String,
@@ -494,7 +528,8 @@ class HomeViewModel @Inject constructor(
         val updated = message.copy(
             taskId = taskId,
             progressText = when (status.lowercase()) {
-                "queued", "pending" -> "Queued…"
+                "queued", "pending", "in_queue" -> "Queued…"
+                "in_progress" -> "Processing…"
                 "retrying" -> taskMessage ?: "Agnes temporarily unavailable. Retrying…"
                 "running" -> "Processing…"
                 else -> "Processing…"
@@ -548,6 +583,10 @@ class HomeViewModel @Inject constructor(
                 if (attachments.size > 1) error("Qwen image-to-video supports only 1 first-frame image")
                 require(params.duration in 2..30) { "Qwen video duration must be between 2 and 30 seconds" }
             }
+            is SeedanceVideoParams -> {
+                if (attachments.size > 1) error("Seedance image-to-video supports one starting image")
+                require(params.duration in 4..30) { "Seedance duration must be between 4 and 30 seconds" }
+            }
             is AgnesVideoParams -> {
                 require(attachments.isEmpty()) { "Agnes Flash currently supports Text-to-Video only" }
                 require(params.seconds in 4..12) { "Agnes video duration must be between 4 and 12 seconds" }
@@ -600,6 +639,7 @@ class HomeViewModel @Inject constructor(
             is MiniMaxVideoParams -> 30L * 1024L * 1024L
             is MiniMaxImageParams -> 10L * 1024L * 1024L
             is AgnesVideoParams -> 1L
+            is SeedanceVideoParams -> 30L * 1024L * 1024L
         }
     }
 
@@ -633,18 +673,18 @@ class HomeViewModel @Inject constructor(
                     ?.takeIf { it.isNotEmpty() }
                     ?.take(400)
                 val reason = when (error.code()) {
-                    400 -> "Agnes rejected the video request"
-                    401, 403 -> "Agnes API key is invalid or does not have access"
-                    402 -> "Agnes account balance or quota is insufficient"
-                    408 -> "Agnes request timed out"
-                    429 -> "Agnes rate limit reached"
-                    in 500..599 -> "Agnes service is temporarily unavailable"
-                    else -> "Agnes request failed (HTTP ${error.code()})"
+                    400 -> "Video provider rejected the request"
+                    401, 403 -> "API key is invalid or does not have access"
+                    402 -> "Provider account balance or quota is insufficient"
+                    408 -> "Video request timed out"
+                    429 -> "Video provider rate limit reached"
+                    in 500..599 -> "Video provider is temporarily unavailable"
+                    else -> "Video request failed (HTTP ${error.code()})"
                 }
                 if (details != null) "$reason: $details" else reason
             }
             is UnknownHostException -> "Network connection failed. Check your internet connection."
-            is SocketTimeoutException -> "Agnes connection timed out. Check History before retrying."
+            is SocketTimeoutException -> "Video connection timed out. Check History before retrying."
             else -> error.message ?: "Generation failed"
         }
     }
