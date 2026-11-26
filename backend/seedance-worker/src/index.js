@@ -131,7 +131,7 @@ export default {
       }
 
       if (request.method === "GET" && parts.length === 6 && parts[3] === "requests" &&
-          /^[0-9a-f-]{20,}$/i.test(parts[4]) && ["status", "result"].includes(parts[5])) {
+          /^[A-Za-z0-9_-]{16,}$/.test(parts[4]) && ["status", "result"].includes(parts[5])) {
         return proxyFalRequest(request, endpoint, parts[4], parts[5], falKey);
       }
       return json({ error: "Unsupported Seedance route." }, 404);
@@ -157,7 +157,7 @@ export default {
       }
 
       if (request.method === "GET" && parts.length === 7 && parts[4] === "requests" &&
-          /^[0-9a-f-]{20,}$/i.test(parts[5]) && ["status", "result"].includes(parts[6])) {
+          /^[A-Za-z0-9_-]{16,}$/.test(parts[5]) && ["status", "result"].includes(parts[6])) {
         return proxyFalRequest(request, endpoint, parts[5], parts[6], falKey);
       }
       return json({ error: "Unsupported fal route." }, 404);
