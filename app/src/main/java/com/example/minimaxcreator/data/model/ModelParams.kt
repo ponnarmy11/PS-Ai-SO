@@ -72,7 +72,8 @@ data class SeedanceVideoParams(
     val resolution: String = "720p",
     val duration: Int = 5,
     val ratio: String = "16:9",
-    val generateAudio: Boolean = true
+    val generateAudio: Boolean = true,
+    val promptOptimizer: Boolean = true
 ) : ModelParams {
     override val platform: PlatformType = PlatformType.FAL
     override val topMode: TopMode = TopMode.VIDEO
