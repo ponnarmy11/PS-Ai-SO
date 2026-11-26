@@ -18,6 +18,8 @@ import com.example.minimaxcreator.data.remote.dto.VideoGenerationV2Response
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.delay
+import retrofit2.HttpException
+import java.io.IOException
 
 @Singleton
 class GenerationRepository @Inject constructor(
@@ -53,10 +55,31 @@ class GenerationRepository @Inject constructor(
         onProgress: suspend (status: String, message: String?) -> Unit
     ): List<String> {
         var interval = 3_000L
+        var consecutiveFailures = 0
         val timeout = System.currentTimeMillis() + 20 * 60 * 1000L
         while (System.currentTimeMillis() < timeout) {
             delay(interval)
-            val task = agnesApi.queryVideo("Bearer $apiKey", videoId, "agnes-video-2.5-flash")
+            val task = try {
+                agnesApi.queryVideo("Bearer $apiKey", videoId, "agnes-video-2.5-flash")
+            } catch (e: HttpException) {
+                val retryable = e.code() in setOf(408, 429, 500, 502, 503, 504, 520, 522, 524)
+                if (!retryable || consecutiveFailures >= 5) throw e
+                consecutiveFailures++
+                val retryAfter = e.response()?.headers()?.get("Retry-After")?.toLongOrNull()
+                val waitMs = retryAfter?.times(1_000L)
+                    ?: (3_000L * (1L shl (consecutiveFailures - 1))).coerceAtMost(30_000L)
+                onProgress("retrying", "Agnes temporarily unavailable (HTTP ${e.code()}). Retrying in ${waitMs / 1_000}s…")
+                delay(waitMs)
+                continue
+            } catch (e: IOException) {
+                if (consecutiveFailures >= 5) throw e
+                consecutiveFailures++
+                val waitMs = (3_000L * (1L shl (consecutiveFailures - 1))).coerceAtMost(30_000L)
+                onProgress("retrying", "Network interrupted. Retrying in ${waitMs / 1_000}s…")
+                delay(waitMs)
+                continue
+            }
+            consecutiveFailures = 0
             when (task.status?.lowercase()) {
                 "completed", "succeeded", "success" ->
                     return listOfNotNull(task.url ?: task.video_url)
