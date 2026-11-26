@@ -400,7 +400,7 @@ private fun ModeIndicatorRow(
                         vertical = 6.dp
                     )
                 ) {
-                    Text(selectedModel, fontSize = 12.sp)
+                    Text(ModelCatalog.displayName(selectedModel), fontSize = 12.sp)
                     Icon(Icons.Outlined.ArrowDropDown, contentDescription = "Select model")
                 }
                 DropdownMenu(
@@ -410,7 +410,7 @@ private fun ModeIndicatorRow(
                     val models = if (mode.isVideo()) ModelCatalog.VIDEO_MODELS else ModelCatalog.IMAGE_MODELS
                     models.forEach { model ->
                         DropdownMenuItem(
-                            text = { Text(model) },
+                            text = { Text(ModelCatalog.displayName(model)) },
                             onClick = {
                                 expanded = false
                                 onModelChange(model)
