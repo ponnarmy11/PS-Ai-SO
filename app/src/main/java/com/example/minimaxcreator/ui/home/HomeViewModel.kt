@@ -676,6 +676,7 @@ class HomeViewModel @Inject constructor(
             is MiniMaxImageParams -> 10L * 1024L * 1024L
             is AgnesVideoParams -> 1L
             is SeedanceVideoParams -> 30L * 1024L * 1024L
+            is FalVideoParams -> 30L * 1024L * 1024L
         }
     }
 
