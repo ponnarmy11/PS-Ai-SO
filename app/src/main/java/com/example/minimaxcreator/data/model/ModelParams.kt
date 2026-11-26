@@ -79,6 +79,18 @@ data class SeedanceVideoParams(
 }
 
 @Serializable
+data class FalVideoParams(
+    override val model: String,
+    val resolution: String = "1080p",
+    val duration: Int = 5,
+    val ratio: String = "16:9",
+    val generateAudio: Boolean = true
+) : ModelParams {
+    override val platform: PlatformType = PlatformType.FAL
+    override val topMode: TopMode = TopMode.VIDEO
+}
+
+@Serializable
 data class QwenVideoParams(
     override val model: String = ModelCatalog.QWEN_VIDEO,
     val resolution: String = "480P",
@@ -103,9 +115,20 @@ object ModelCatalog {
     const val QWEN_VIDEO = "wan3.0-video"
     const val AGNES_VIDEO_FLASH = "agnes-video-2.5-flash"
     const val SEEDANCE_25 = "Seedance 2.5"
+    const val KLING_V4 = "kling-v4"
+    const val WAN_30 = "wan-3"
+    const val HAILUO_23 = "hailuo-23"
 
+    val FAL_VIDEO_MODELS = listOf(KLING_V4, WAN_30, HAILUO_23)
     val IMAGE_MODELS = listOf(MINIMAX_IMAGE_01, MINIMAX_IMAGE_01_LIVE, QWEN_IMAGE)
-    val VIDEO_MODELS = listOf(MINIMAX_H3, QWEN_VIDEO, SEEDANCE_25)
+    val VIDEO_MODELS = listOf(MINIMAX_H3, QWEN_VIDEO, SEEDANCE_25) + FAL_VIDEO_MODELS
+
+    fun displayName(model: String): String = when (model) {
+        KLING_V4 -> "Kling 4.0"
+        WAN_30 -> "Wan 3.0"
+        HAILUO_23 -> "Hailuo 2.3 Pro"
+        else -> model
+    }
 
     fun isQwenImage(model: String): Boolean = model == QWEN_IMAGE
     fun isQwen(model: String): Boolean = model == QWEN_IMAGE || model == QWEN_VIDEO
@@ -117,6 +140,7 @@ object ModelCatalog {
             topMode == TopMode.VIDEO && model == QWEN_VIDEO -> QwenVideoParams()
             topMode == TopMode.VIDEO && model == AGNES_VIDEO_FLASH -> AgnesVideoParams()
             topMode == TopMode.VIDEO && model == SEEDANCE_25 -> SeedanceVideoParams()
+            topMode == TopMode.VIDEO && model in FAL_VIDEO_MODELS -> FalVideoParams(model = model)
             topMode == TopMode.IMAGE -> MiniMaxImageParams(model = model)
             else -> MiniMaxVideoParams()
         }
@@ -130,6 +154,7 @@ object ModelCatalog {
             is QwenVideoParams -> json.encodeToString(QwenVideoParams.serializer(), params)
             is AgnesVideoParams -> json.encodeToString(AgnesVideoParams.serializer(), params)
             is SeedanceVideoParams -> json.encodeToString(SeedanceVideoParams.serializer(), params)
+            is FalVideoParams -> json.encodeToString(FalVideoParams.serializer(), params)
         }
     }
 
@@ -149,12 +174,13 @@ object ModelCatalog {
                 is QwenVideoParams -> json.decodeFromString(QwenVideoParams.serializer(), raw)
                 is AgnesVideoParams -> json.decodeFromString(AgnesVideoParams.serializer(), raw)
                 is SeedanceVideoParams -> json.decodeFromString(SeedanceVideoParams.serializer(), raw)
+                is FalVideoParams -> json.decodeFromString(FalVideoParams.serializer(), raw)
             }
         }.getOrDefault(fallback)
     }
 
     fun platformFor(model: String): PlatformType {
-        return when (model) { AGNES_VIDEO_FLASH -> PlatformType.AGNES; SEEDANCE_25 -> PlatformType.FAL; QWEN_IMAGE, QWEN_VIDEO -> PlatformType.QWEN; else -> PlatformType.MINIMAX }
+        return when (model) { AGNES_VIDEO_FLASH -> PlatformType.AGNES; SEEDANCE_25, KLING_V4, WAN_30, HAILUO_23 -> PlatformType.FAL; QWEN_IMAGE, QWEN_VIDEO -> PlatformType.QWEN; else -> PlatformType.MINIMAX }
     }
 
     fun subModeFor(model: String, topMode: TopMode, hasImage: Boolean): SubMode {
