@@ -43,6 +43,7 @@ import com.example.minimaxcreator.data.model.ModelParams
 import com.example.minimaxcreator.data.model.QwenImageParams
 import com.example.minimaxcreator.data.model.QwenVideoParams
 import com.example.minimaxcreator.data.model.SeedanceVideoParams
+import com.example.minimaxcreator.data.model.FalVideoParams
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,6 +90,7 @@ fun ParameterBottomSheet(
                 is QwenVideoParams -> QwenVideoPanel(current) { params = it }
                 is AgnesVideoParams -> AgnesVideoPanel(current) { params = it }
                 is SeedanceVideoParams -> SeedanceVideoPanel(current) { params = it }
+                is FalVideoParams -> FalVideoPanel(current) { params = it }
             }
             Spacer(modifier = Modifier.height(20.dp))
             Row(
@@ -293,6 +295,35 @@ private fun SeedanceVideoPanel(
 }
 
 @Composable
+private fun FalVideoPanel(params: FalVideoParams, onParamsChange: (FalVideoParams) -> Unit) {
+    val hailuo = params.model == ModelCatalog.HAILUO_23
+    if (!hailuo) {
+        val resolutions = if (params.model == ModelCatalog.WAN_30) listOf("480p", "720p", "1080p") else listOf("720p", "1080p", "4k")
+        SimpleChips("Resolution", resolutions, params.resolution) {
+            onParamsChange(params.copy(resolution = it))
+        }
+        SliderText("Duration: ${params.duration} sec", params.duration.toFloat(), 3f, 30f, 26) {
+            onParamsChange(params.copy(duration = it.roundToInt().coerceIn(3, 30)))
+        }
+        val ratios = if (params.model == ModelCatalog.WAN_30) listOf("adaptive", "16:9", "4:3", "1:1", "3:4", "9:16") else listOf("16:9", "9:16", "1:1", "4:3", "3:4", "21:9")
+        SimpleChips("Aspect Ratio", ratios, params.ratio) {
+            onParamsChange(params.copy(ratio = it))
+        }
+        if (params.model == ModelCatalog.WAN_30) {
+            SwitchRow("Generate Audio", params.generateAudio) {
+                onParamsChange(params.copy(generateAudio = it))
+            }
+        }
+    } else {
+        Text("Hailuo 2.3 Pro · 1080p · provider-defined duration", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        SwitchRow("Prompt Optimizer", params.promptOptimizer) {
+            onParamsChange(params.copy(promptOptimizer = it))
+        }
+    }
+    Text("fal.ai · uses your saved fal API key", color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+@Composable
 private fun AgnesVideoPanel(params: AgnesVideoParams, onParamsChange: (AgnesVideoParams) -> Unit) {
     SimpleChips("Duration", (4..12).map { it.toString() + " sec" }, params.seconds.toString() + " sec") {
         onParamsChange(params.copy(seconds = it.substringBefore(" ").toInt()))
@@ -379,6 +410,7 @@ private fun defaultParams(params: ModelParams): ModelParams {
         is QwenVideoParams -> QwenVideoParams(model = params.model)
         is AgnesVideoParams -> AgnesVideoParams(model = params.model)
         is SeedanceVideoParams -> SeedanceVideoParams(model = params.model)
+        is FalVideoParams -> FalVideoParams(model = params.model)
     }
 }
 
@@ -390,6 +422,7 @@ private fun copyTextFields(params: ModelParams, seedText: String): ModelParams {
         is MiniMaxVideoParams -> params
         is AgnesVideoParams -> params.copy(seed = seedText.toIntOrNull())
         is SeedanceVideoParams -> params
+        is FalVideoParams -> params
     }
 }
 
@@ -400,6 +433,7 @@ private fun seedTextFor(params: ModelParams): String {
         is QwenVideoParams -> params.seed?.toString() ?: ""
         is AgnesVideoParams -> params.seed?.toString() ?: ""
         is SeedanceVideoParams -> ""
+        is FalVideoParams -> ""
         is MiniMaxVideoParams -> ""
     }
 }
