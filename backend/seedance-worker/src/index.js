@@ -71,6 +71,7 @@ function falInput(model, mode, input) {
     return result;
   }
   if (model === "hailuo-23") {
+    if (input.prompt.length > 2000) throw new Error("Hailuo 2.3 Pro prompts are limited to 2,000 characters.");
     const result = {
       prompt: input.prompt,
       prompt_optimizer: input.prompt_optimizer !== false,
