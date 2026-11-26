@@ -114,7 +114,7 @@ export default {
         ["status", "result"].includes(parts[5])) {
       const mode = parts[2];
       const endpoint = MODELS[mode].split("/");
-      const base = `https://queue.fal.run/${endpoint.slice(0, 2).join("/")}/requests/${encodeURIComponent(parts[4])}`;
+      const base = `https://queue.fal.run/${endpoint.join("/")}/requests/${encodeURIComponent(parts[4])}`;
       const target = parts[5] === "status" ? `${base}/status` : base;
       const upstream = await fetch(target, {
         headers: { Authorization: `Key ${falKey}` },
