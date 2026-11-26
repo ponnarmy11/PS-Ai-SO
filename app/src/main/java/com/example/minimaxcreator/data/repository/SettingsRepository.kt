@@ -44,6 +44,7 @@ class SettingsRepository @Inject constructor(
         val MiniMaxApiKey = stringPreferencesKey("mini_max_api_key")
         val QwenApiKey = stringPreferencesKey("qwen_api_key")
         val AgnesApiKey = stringPreferencesKey("agnes_api_key")
+        val FalApiKey = stringPreferencesKey("fal_api_key")
         val DefaultImageModel = stringPreferencesKey("default_image_model")
         val DefaultVideoModel = stringPreferencesKey("default_video_model")
         val ModelParams = stringPreferencesKey("model_params")
@@ -63,6 +64,7 @@ class SettingsRepository @Inject constructor(
             miniMaxApiKey = miniMaxApiKey,
             qwenApiKey = decrypt(preferences[Keys.QwenApiKey] ?: ""),
             agnesApiKey = decrypt(preferences[Keys.AgnesApiKey] ?: ""),
+            falApiKey = decrypt(preferences[Keys.FalApiKey] ?: ""),
             defaultImageModel = preferences[Keys.DefaultImageModel] ?: "image-01",
             defaultVideoModel = preferences[Keys.DefaultVideoModel] ?: "MiniMax-H3",
             modelParams = modelParams,
@@ -78,6 +80,8 @@ class SettingsRepository @Inject constructor(
     suspend fun qwenApiKey(): String = settings.first().qwenApiKey
 
     suspend fun agnesApiKey(): String = settings.first().agnesApiKey
+
+    suspend fun falApiKey(): String = settings.first().falApiKey
 
     suspend fun setApiKey(apiKey: String) {
         context.settingsDataStore.edit { preferences ->
@@ -97,6 +101,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setQwenApiKey(apiKey: String) {
         context.settingsDataStore.edit { preferences ->
             preferences[Keys.QwenApiKey] = apiKey.trim().takeIf { it.isNotBlank() }?.let(::encrypt) ?: ""
+        }
+    }
+
+    suspend fun setFalApiKey(apiKey: String) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[Keys.FalApiKey] = apiKey.trim().takeIf { it.isNotBlank() }?.let(::encrypt) ?: ""
         }
     }
 
