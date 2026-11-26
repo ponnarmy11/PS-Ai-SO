@@ -7,6 +7,7 @@ import com.example.minimaxcreator.data.remote.ApiAuthInterceptor
 import com.example.minimaxcreator.data.remote.api.MiniMaxApiService
 import com.example.minimaxcreator.data.remote.api.AgnesApiService
 import com.example.minimaxcreator.data.remote.api.SeedanceApiService
+import com.example.minimaxcreator.data.remote.api.FalVideoApiService
 import com.example.minimaxcreator.data.repository.SettingsRepository
 import com.example.minimaxcreator.data.remote.QwenAuthInterceptor
 import com.example.minimaxcreator.data.remote.api.QwenApiService
@@ -93,6 +94,11 @@ object AppModule {
     @Singleton
     fun provideSeedanceApi(@Named("seedanceRetrofit") retrofit: Retrofit): SeedanceApiService =
         retrofit.create(SeedanceApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideFalVideoApi(@Named("seedanceRetrofit") retrofit: Retrofit): FalVideoApiService =
+        retrofit.create(FalVideoApiService::class.java)
 
     @Provides
     @Singleton
