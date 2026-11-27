@@ -108,6 +108,10 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setQwenRegion(region: String) {
+        viewModelScope.launch { settingsRepository.setQwenRegion(region) }
+    }
+
     fun setDefaultImageModel(model: String) {
         viewModelScope.launch { settingsRepository.setDefaultImageModel(model) }
     }
