@@ -92,6 +92,12 @@ fun SettingsScreen(
                 onValueChange = { qwenKey = it },
                 label = "Qwen (DashScope) API Key"
             )
+            ModelDropdown(
+                label = "Qwen API Region (must match your API key)",
+                options = listOf("SINGAPORE", "CHINA_BEIJING"),
+                selected = state.settings.qwenRegion,
+                onSelect = viewModel::setQwenRegion
+            )
             KeyField(
                 value = falKey,
                 onValueChange = { falKey = it; falSaveStatus = null },
