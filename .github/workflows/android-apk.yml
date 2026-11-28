@@ -1,6 +1,8 @@
 name: Android APK
 
 on:
+  pull_request:
+    branches: [ "main" ]
   push:
     branches: [ "main" ]
   workflow_dispatch:
@@ -50,6 +52,7 @@ jobs:
           retention-days: 14
 
       - name: Publish APK as GitHub Release asset
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}

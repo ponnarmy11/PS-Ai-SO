@@ -68,6 +68,7 @@ data class AppSettings(
     val apiKey: String = "",
     val miniMaxApiKey: String = "",
     val qwenApiKey: String = "",
+    val qwenRegion: String = "SINGAPORE",
     val agnesApiKey: String = "",
     val falApiKey: String = "",
     val defaultImageModel: String = "image-01",

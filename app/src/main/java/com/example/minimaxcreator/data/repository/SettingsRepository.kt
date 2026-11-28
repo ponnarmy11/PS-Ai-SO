@@ -43,6 +43,7 @@ class SettingsRepository @Inject constructor(
         val ApiKey = stringPreferencesKey("encrypted_api_key")
         val MiniMaxApiKey = stringPreferencesKey("mini_max_api_key")
         val QwenApiKey = stringPreferencesKey("qwen_api_key")
+        val QwenRegion = stringPreferencesKey("qwen_region")
         val AgnesApiKey = stringPreferencesKey("agnes_api_key")
         val FalApiKey = stringPreferencesKey("fal_api_key")
         val DefaultImageModel = stringPreferencesKey("default_image_model")
@@ -63,6 +64,7 @@ class SettingsRepository @Inject constructor(
             apiKey = miniMaxApiKey,
             miniMaxApiKey = miniMaxApiKey,
             qwenApiKey = decrypt(preferences[Keys.QwenApiKey] ?: ""),
+            qwenRegion = preferences[Keys.QwenRegion] ?: "SINGAPORE",
             agnesApiKey = decrypt(preferences[Keys.AgnesApiKey] ?: ""),
             falApiKey = decrypt(preferences[Keys.FalApiKey] ?: ""),
             defaultImageModel = preferences[Keys.DefaultImageModel] ?: "image-01",
@@ -78,6 +80,13 @@ class SettingsRepository @Inject constructor(
     suspend fun currentApiKey(): String = settings.first().miniMaxApiKey
 
     suspend fun qwenApiKey(): String = settings.first().qwenApiKey
+
+    suspend fun qwenRegion(): String = settings.first().qwenRegion
+
+    suspend fun setQwenRegion(region: String) {
+        require(region in setOf("SINGAPORE", "CHINA_BEIJING"))
+        context.settingsDataStore.edit { it[Keys.QwenRegion] = region }
+    }
 
     suspend fun agnesApiKey(): String = settings.first().agnesApiKey
 
