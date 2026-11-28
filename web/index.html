@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101522">
+  <title>PS AI STUDIO</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">PS</span><span>PS AI <b>STUDIO</b><small>CREATIVE WORKSPACE</small></span></a>
+    <div class="top-actions"><span id="connection" class="status-dot">● API not connected</span><button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙</button></div>
+  </header>
+  <main class="layout">
+    <aside class="sidebar">
+      <button class="nav active" data-tab="create">✦ <span>Create</span></button>
+      <button class="nav" data-tab="history">◷ <span>History</span></button>
+      <div class="side-note"><b>VIDEO STUDIO</b><p>Generate videos from a prompt or a reference image.</p></div>
+      <div class="side-footer">PS AI STUDIO · WEB</div>
+    </aside>
+    <section class="content">
+      <section id="createView">
+        <div class="page-heading"><div><p class="eyebrow">AI VIDEO WORKSPACE</p><h1>Create a video</h1><p class="muted">Describe your scene. Choose a model. Generate.</p></div><span class="pill">● READY WHEN API KEY IS SET</span></div>
+        <div class="studio-grid">
+          <section class="panel composer">
+            <div class="section-title"><span>01</span><div><h2>Generation setup</h2><p>Choose your model and video type.</p></div></div>
+            <label class="field-label" for="model">AI MODEL</label>
+            <select id="model">
+              <option value="seedance">Seedance 2.5</option>
+              <option value="kling-v4">Kling 4.0</option>
+              <option value="wan-3">Wan 3.0</option>
+              <option value="hailuo-23">Hailuo 2.3 Pro</option>
+            </select>
+            <label class="field-label">GENERATION MODE</label>
+            <div class="segmented"><button class="mode active" data-mode="text-to-video">Text to Video</button><button class="mode" data-mode="image-to-video">Image to Video</button></div>
+            <div id="imageField" class="image-field hidden"><label class="field-label" for="image">START IMAGE</label><input id="image" type="file" accept="image/png,image/jpeg,image/webp"><p class="hint">Use JPG, PNG or WebP. The image is sent for this generation only.</p></div>
+            <label class="field-label" for="prompt">YOUR PROMPT</label>
+            <textarea id="prompt" rows="5" maxlength="20000" placeholder="A cinematic waterfall in a lush tropical forest, morning mist, slow camera push-in, realistic water movement, natural light..."></textarea>
+            <div class="prompt-foot"><span>Be specific about subject, movement, camera and lighting.</span><span id="charCount">0 / 20000</span></div>
+            <div class="two-cols">
+              <div><label class="field-label" for="duration">DURATION</label><select id="duration"></select><small id="durationHint" class="hint"></small></div>
+              <div><label class="field-label" for="ratio">ASPECT RATIO</label><select id="ratio"><option>16:9</option><option>9:16</option><option>1:1</option><option>4:3</option><option>3:4</option></select></div>
+            </div>
+            <div class="two-cols">
+              <div><label class="field-label" for="resolution">RESOLUTION</label><select id="resolution"><option>720p</option><option selected>1080p</option><option>480p</option><option>4k</option></select></div>
+              <div class="check-wrap"><label><input id="audio" type="checkbox" checked> Generate with audio (if supported)</label></div>
+            </div>
+            <button id="generate" class="primary-btn">✦ Generate video</button>
+            <p class="hint cost-note">Generation uses your fal.ai account and may consume credits. Check account balance before submitting.</p>
+          </section>
+          <section class="panel output-panel">
+            <div class="section-title"><span>02</span><div><h2>Result</h2><p>Your generated video appears here.</p></div></div>
+            <div id="emptyState" class="empty-state"><div class="empty-icon">▶</div><h3>Your next video starts here</h3><p>Enter a prompt and press Generate. You can keep this page open while the job runs.</p></div>
+            <div id="progressState" class="progress-state hidden"><div class="spinner"></div><h3 id="progressTitle">Submitting request…</h3><p id="progressText">Connecting to the video model.</p><div class="progress-track"><span></span></div><small id="requestId"></small></div>
+            <div id="errorState" class="error-state hidden"><b>Generation failed</b><p id="errorText"></p><button id="retry" class="secondary-btn">Try again</button></div>
+            <div id="videoState" class="video-state hidden"><video id="resultVideo" controls playsinline></video><div class="video-actions"><a id="downloadVideo" class="secondary-btn" download="ps-ai-studio-video.mp4">↓ Download video</a><button id="newVideo" class="secondary-btn">New generation</button></div></div>
+            <div class="result-tip"><b>Note</b><span>2 seconds is not available on every model. The duration list follows each model's supported range.</span></div>
+          </section>
+        </div>
+      </section>
+      <section id="historyView" class="hidden">
+        <div class="page-heading"><div><p class="eyebrow">YOUR WORK</p><h1>Generation history</h1><p class="muted">Recent jobs saved in this browser.</p></div><button id="clearHistory" class="secondary-btn">Clear history</button></div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </section>
+  </main>
+  <dialog id="settingsDialog">
+    <form method="dialog" id="settingsForm">
+      <div class="dialog-head"><div><p class="eyebrow">CONNECTION</p><h2>API settings</h2></div><button class="icon-btn" aria-label="Close">✕</button></div>
+      <label class="field-label" for="apiKey">FAL.AI API KEY</label>
+      <input id="apiKey" type="password" autocomplete="off" placeholder="Paste your fal.ai API key">
+      <p class="hint">The key stays in this page's memory and is not saved to browser storage. It is sent to your PS AI Studio Worker to authorize requests.</p>
+      <label class="field-label" for="workerUrl">WORKER API URL</label>
+      <input id="workerUrl" type="url" value="https://ps-ai-studio-seedance.ps-ai-studio.workers.dev">
+      <div class="dialog-actions"><button type="button" id="testConnection" class="secondary-btn">Test connection</button><button type="button" id="saveSettings" class="primary-btn compact">Save settings</button></div>
+      <p id="settingsMessage" class="hint"></p>
+    </form>
+  </dialog>
+  <script src="./app.js"></script>
+</body>
+</html>
