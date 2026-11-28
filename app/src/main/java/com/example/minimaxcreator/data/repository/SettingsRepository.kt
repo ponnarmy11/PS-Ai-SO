@@ -90,7 +90,7 @@ class SettingsRepository @Inject constructor(
 
     suspend fun agnesApiKey(): String = settings.first().agnesApiKey
 
-    suspend fun falApiKey(): String = settings.first().falApiKey
+    suspend fun falApiKey(): String = settings.first().falApiKey.filterNot { it.isWhitespace() }
 
     suspend fun setApiKey(apiKey: String) {
         context.settingsDataStore.edit { preferences ->
@@ -115,7 +115,7 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setFalApiKey(apiKey: String) {
         context.settingsDataStore.edit { preferences ->
-            preferences[Keys.FalApiKey] = apiKey.trim().takeIf { it.isNotBlank() }?.let(::encrypt) ?: ""
+            preferences[Keys.FalApiKey] = apiKey.filterNot { it.isWhitespace() }.takeIf { it.isNotBlank() }?.let(::encrypt) ?: ""
         }
     }
 
