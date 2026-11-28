@@ -32,7 +32,8 @@ function json(data, status = 200) {
 function getFalKey(request) {
   const value = request.headers.get("Authorization") || "";
   const match = value.match(/^Bearer\s+(.+)$/i);
-  return match?.[1]?.trim() || null;
+  // Remove all whitespace so copied keys cannot inject CR/LF into upstream headers.
+  return match?.[1]?.replace(/\s+/g, "") || null;
 }
 
 function validPrompt(value) {
@@ -110,6 +111,9 @@ export default {
 
     const url = new URL(request.url);
     const parts = url.pathname.split("/").filter(Boolean);
+    if (url.pathname === "/health" && request.method === "GET") {
+      return json({ ok: true, service: "ps-ai-studio-seedance" });
+    }
     if (parts[0] !== "v1") return json({ error: "Not found" }, 404);
 
     const falKey = getFalKey(request);
